@@ -1,0 +1,129 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/world/movement_test.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/items/world_item.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/items/test_item.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/items/revolver_ammo.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/items/revolver_item.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/items/shotgun_shell.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/items/double_barrel_shotgun_item.tres" id="8"]
+
+[sub_resource type="RectangleShape2D" id="Box"]
+size = Vector2(100, 100)
+
+[sub_resource type="RectangleShape2D" id="Bar"]
+size = Vector2(180, 50)
+
+[sub_resource type="CircleShape2D" id="Circle"]
+radius = 45.0
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1152, 24)
+
+[sub_resource type="RectangleShape2D" id="VerticalWall"]
+size = Vector2(24, 720)
+
+[node name="MovementTest" type="Node2D"]
+script = ExtResource("2")
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector2(260, 540)
+
+[node name="FrontBox" type="StaticBody2D" parent="."]
+position = Vector2(260, 270)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FrontBox"]
+shape = SubResource("Box")
+
+[node name="PassageLeft" type="StaticBody2D" parent="."]
+position = Vector2(550, 450)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PassageLeft"]
+shape = SubResource("Box")
+
+[node name="PassageRight" type="StaticBody2D" parent="."]
+position = Vector2(730, 450)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PassageRight"]
+shape = SubResource("Box")
+
+[node name="UpperBar" type="StaticBody2D" parent="."]
+position = Vector2(590, 140)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="UpperBar"]
+shape = SubResource("Bar")
+
+[node name="RoundCorner" type="StaticBody2D" parent="."]
+position = Vector2(940, 250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoundCorner"]
+shape = SubResource("Circle")
+
+[node name="RoundLower" type="StaticBody2D" parent="."]
+position = Vector2(930, 580)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RoundLower"]
+shape = SubResource("Circle")
+
+[node name="Top" type="StaticBody2D" parent="."]
+position = Vector2(576, 12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Top"]
+shape = SubResource("HorizontalWall")
+
+[node name="Bottom" type="StaticBody2D" parent="."]
+position = Vector2(576, 708)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bottom"]
+shape = SubResource("HorizontalWall")
+
+[node name="Left" type="StaticBody2D" parent="."]
+position = Vector2(12, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Left"]
+shape = SubResource("VerticalWall")
+
+[node name="Right" type="StaticBody2D" parent="."]
+position = Vector2(1140, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Right"]
+shape = SubResource("VerticalWall")
+
+[node name="NearItem" parent="." instance=ExtResource("3")]
+position = Vector2(320, 540)
+definition = ExtResource("4")
+
+[node name="SecondItem" parent="." instance=ExtResource("3")]
+position = Vector2(215, 485)
+definition = ExtResource("4")
+
+[node name="FarItem" parent="." instance=ExtResource("3")]
+position = Vector2(450, 590)
+definition = ExtResource("4")
+
+[node name="AmmoFirst" parent="." instance=ExtResource("3")]
+position = Vector2(335, 485)
+definition = ExtResource("5")
+quantity = 20
+
+[node name="AmmoSecond" parent="." instance=ExtResource("3")]
+position = Vector2(180, 550)
+definition = ExtResource("7")
+quantity = 10
+
+[node name="TestWeapon" parent="." instance=ExtResource("3")]
+position = Vector2(290, 450)
+definition = ExtResource("6")
+
+[node name="Shotgun" parent="." instance=ExtResource("3")]
+position = Vector2(235, 620)
+definition = ExtResource("8")
+
+[connection signal="pickup_requested" from="NearItem" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="SecondItem" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="FarItem" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="AmmoFirst" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="AmmoSecond" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="TestWeapon" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="Shotgun" to="Player/PickupInteractor" method="request_pickup"]

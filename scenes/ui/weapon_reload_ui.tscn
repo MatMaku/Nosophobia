@@ -1,0 +1,74 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/weapon_reload_ui.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/reload_ammo_control.tscn" id="2"]
+
+[node name="WeaponReloadUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+loose_round_scene = ExtResource("2")
+
+[node name="WeaponButton" type="Button" parent="."]
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -72.0
+offset_right = 144.0
+offset_bottom = -16.0
+grow_vertical = 0
+expand_icon = true
+text = "Arma"
+
+[node name="Panel" type="PanelContainer" parent="."]
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -450.0
+offset_right = 376.0
+offset_bottom = -88.0
+grow_vertical = 0
+mouse_filter = 0
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Content" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Panel/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "RECARGA MANUAL"
+horizontal_alignment = 1
+
+[node name="LayoutHost" type="Control" parent="Panel/Margin/Content"]
+custom_minimum_size = Vector2(300, 220)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="Panel/Margin/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Arrastrá un cartucho a una recámara vacía."
+theme_override_font_sizes/font_size = 13
+
+[node name="LooseRounds" type="HFlowContainer" parent="Panel/Margin/Content"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 6

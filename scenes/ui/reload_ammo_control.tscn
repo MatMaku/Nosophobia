@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/reload_ammo_control.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/ui/item_drag_preview.tscn" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="SocketStyle"]
+bg_color = Color(0.12, 0.14, 0.18, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.6, 0.65, 1)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_left = 24
+corner_radius_bottom_right = 24
+
+[node name="AmmoControl" type="PanelContainer"]
+custom_minimum_size = Vector2(44, 44)
+offset_right = 44.0
+offset_bottom = 44.0
+mouse_filter = 0
+theme_override_styles/panel = SubResource("SocketStyle")
+script = ExtResource("1")
+preview_scene = ExtResource("2")
+
+[node name="Icon" type="TextureRect" parent="."]
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

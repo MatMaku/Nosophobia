@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/reload_ammo_control.tscn" id="1"]
+
+[node name="ReloadLayout" type="Control"]
+custom_minimum_size = Vector2(300, 220)
+mouse_filter = 2
+
+[node name="Sockets" type="Control" parent="."]
+mouse_filter = 2
+
+[node name="Chamber1" parent="Sockets" instance=ExtResource("1")]
+offset_left = 128.0
+offset_top = 0.0
+offset_right = 172.0
+offset_bottom = 44.0
+chamber_index = 0
+
+[node name="Chamber2" parent="Sockets" instance=ExtResource("1")]
+offset_left = 57.0
+offset_top = 44.0
+offset_right = 101.0
+offset_bottom = 88.0
+chamber_index = 1
+
+[node name="Chamber3" parent="Sockets" instance=ExtResource("1")]
+offset_left = 199.0
+offset_top = 44.0
+offset_right = 243.0
+offset_bottom = 88.0
+chamber_index = 2
+
+[node name="Chamber4" parent="Sockets" instance=ExtResource("1")]
+offset_left = 57.0
+offset_top = 128.0
+offset_right = 101.0
+offset_bottom = 172.0
+chamber_index = 3
+
+[node name="Chamber5" parent="Sockets" instance=ExtResource("1")]
+offset_left = 199.0
+offset_top = 128.0
+offset_right = 243.0
+offset_bottom = 172.0
+chamber_index = 4
+
+[node name="Chamber6" parent="Sockets" instance=ExtResource("1")]
+offset_left = 128.0
+offset_top = 172.0
+offset_right = 172.0
+offset_bottom = 216.0
+chamber_index = 5

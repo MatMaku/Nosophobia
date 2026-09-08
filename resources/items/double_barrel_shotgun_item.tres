@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/items/item_definition.gd" id="1"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+[ext_resource type="Resource" path="res://resources/combat/double_barrel_shotgun_firearm.tres" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shotgun_reload_layout.tscn" id="4"]
+
+[resource]
+script = ExtResource("1")
+display_name = "Double-barrel Shotgun"
+icon = ExtResource("2")
+equipment_slot = 1
+firearm = ExtResource("3")
+reload_layout = ExtResource("4")

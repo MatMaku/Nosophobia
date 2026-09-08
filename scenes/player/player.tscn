@@ -1,0 +1,56 @@
+[gd_scene format=3 uid="uid://c8c2xgd86ml4e"]
+
+[ext_resource type="Script" uid="uid://cbmee6x67r0ht" path="res://scripts/player/wheelchair_body.gd" id="1"]
+[ext_resource type="Script" uid="uid://dv1p00nfqpjp8" path="res://scripts/player/wheelchair_input.gd" id="2"]
+[ext_resource type="Script" uid="uid://cf3mfr75qvnsr" path="res://scripts/player/wheelchair_debug.gd" id="3"]
+[ext_resource type="Texture2D" uid="uid://bsb1ks46orayv" path="res://icon.svg" id="4"]
+[ext_resource type="Script" path="res://scripts/player/pickup_interactor.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/player/weapon_aim_controller.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/player/firearm_controller.gd" id="7"]
+
+[sub_resource type="RectangleShape2D" id="ChairShape"]
+size = Vector2(46, 46)
+
+[node name="Player" type="RigidBody2D" unique_id=898238422]
+mass = 2.0
+gravity_scale = 0.0
+continuous_cd = 2
+linear_damp_mode = 1
+linear_damp = 1.2
+angular_damp_mode = 1
+angular_damp = 5.0
+script = ExtResource("1")
+propulsion_force = 1.0
+turn_force = 20.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=989774081]
+scale = Vector2(0.35, 0.35)
+texture = ExtResource("4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=495710167]
+shape = SubResource("ChairShape")
+
+[node name="WheelchairInput" type="Node2D" parent="." unique_id=1911036930]
+script = ExtResource("2")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1261430214]
+process_callback = 0
+
+[node name="Debug" type="Node2D" parent="." unique_id=849687554 node_paths=PackedStringArray("mouse_input")]
+script = ExtResource("3")
+mouse_input = NodePath("../WheelchairInput")
+
+[node name="PickupInteractor" type="Node2D" parent="."]
+script = ExtResource("5")
+
+[node name="Muzzle" type="Marker2D" parent="."]
+position = Vector2(0, -24)
+
+[node name="WeaponAim" type="Node2D" parent="."]
+script = ExtResource("6")
+
+[node name="FirearmController" type="Node2D" parent="." node_paths=PackedStringArray("aim", "body", "muzzle")]
+script = ExtResource("7")
+aim = NodePath("../WeaponAim")
+body = NodePath("..")
+muzzle = NodePath("../Muzzle")

@@ -254,56 +254,77 @@ Crear un InputComponent separado solamente cuando la complejidad lo justifique.
 
 Organización del proyecto
 
-Organizar principalmente por feature/dominio, no por extensión de archivo.
+Organizar primero por tipo de recurso y después por feature o dominio.
+
+Las carpetas raíz deben usar nombres descriptivos en snake_case.
+
+Dentro de cada carpeta raíz, agrupar los archivos relacionados mediante
+subcarpetas como player, enemies, world o ui.
 
 Estructura inicial recomendada:
 
 res://
 
-app/
-    main.tscn
-
-game/
-    actors/
-        player/
-        enemies/
-
-    combat/
-
+scripts/
+    player/
+    enemies/
     world/
-
     ui/
 
-    shared/
+scenes/
+    app/
+    player/
+    enemies/
+    world/
+    ui/
+
+sprites/
+    player/
+    enemies/
+    world/
+
+resources/
+    player/
+    enemies/
+    world/
 
 addons/
 
 docs/
 
-Mantener las escenas, scripts y assets específicos de una feature cerca entre sí.
+La estructura anterior es orientativa. Crear solamente las carpetas y subcarpetas
+que correspondan a archivos existentes; no crear directorios vacíos para features
+futuras.
+
+Mantener una correspondencia clara entre las subcarpetas de cada tipo de recurso.
 
 Ejemplo:
 
-game/
-    actors/
-        player/
-            player.tscn
-            player.gd
-            movement_component.gd
-            animation_controller.gd
-            player_sprite.png
-
-No crear por defecto carpetas globales gigantes como:
-
 scripts/
-scenes/
-textures/
+    player/
+        player.gd
+        movement_component.gd
+        animation_controller.gd
 
-si eso separa archivos que conceptualmente pertenecen al mismo sistema.
+scenes/
+    player/
+        player.tscn
+
+sprites/
+    player/
+        player_sprite.png
+
+No colocar todos los archivos directamente en scripts/, scenes/, sprites/ o
+resources/. Usar subcarpetas por feature o dominio para evitar carpetas raíz
+desordenadas.
+
+No crear una carpeta nueva por cada extensión si el tipo de recurso ya tiene una
+ubicación clara.
 
 Usar addons/ para plugins y dependencias externas.
 
-Usar shared/ solamente cuando algo sea realmente compartido.
+Usar una subcarpeta shared/ dentro del tipo de recurso correspondiente solamente
+cuando algo sea realmente compartido.
 
 Convenciones GDScript
 
