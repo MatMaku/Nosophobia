@@ -10,6 +10,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/weapon_reload_ui.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/combat/bullet_tracer.tscn" id="9"]
 [ext_resource type="Texture2D" uid="uid://qyc6gjiss42t" path="res://Sprites/Cursor/aim_cursor.svg" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/combat/weapon_fire_vfx.tscn" id="11"]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/grain_overlay.tscn" id="12"]
 
 [node name="Main" type="Node2D" unique_id=989231918]
 script = ExtResource("3")
@@ -31,3 +34,7 @@ aiming_texture = ExtResource("10")
 [node name="WeaponReloadUI" parent="HUD" unique_id=1413624616 instance=ExtResource("8")]
 
 [node name="Tracers" type="Node2D" parent="." unique_id=838263489]
+
+[node name="WeaponFireVFX" parent="." unique_id=1640063278 instance=ExtResource("11")]
+
+[node name="GrainOverlay" parent="." instance=ExtResource("12")]

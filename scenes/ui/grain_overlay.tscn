@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://bsl6jmqg2x50p"]
+
+[ext_resource type="Shader" uid="uid://cl3a2840y7fiw" path="res://shaders/ui/grain.gdshader" id="1"]
+
+[sub_resource type="ShaderMaterial" id="Grain"]
+shader = ExtResource("1")
+shader_parameter/grain_intensity = 0.02000000095
+shader_parameter/grain_scale = 1.0
+shader_parameter/grain_update_rate = 16.0
+
+[node name="GrainOverlay" type="CanvasLayer" unique_id=796694328]
+layer = 10
+
+[node name="Grain" type="ColorRect" parent="." unique_id=503557382]
+material = SubResource("Grain")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

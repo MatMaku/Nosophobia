@@ -17,7 +17,8 @@ config/icon="res://icon.svg"
 
 [display]
 
-window/size/viewport_height=720
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -33,3 +34,4 @@ joypads/ignore_joypad_on_unfocused_application=true
 
 rendering_device/driver.windows="d3d12"
 lights_and_shadows/multi_bounce_occlusion/enabled=true
+environment/defaults/default_clear_color=Color(0.007, 0.01, 0.014, 1)

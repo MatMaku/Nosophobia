@@ -13,6 +13,7 @@ Los cambios internos pequeños que no alteran la arquitectura no requieren actua
 scenes/
   app/main.tscn
   player/player.tscn
+  player/character_visual.tscn
   world/movement_test.tscn
   items/world_item.tscn
   ui/inventory_ui.tscn
@@ -21,6 +22,7 @@ scenes/
 scripts/
   app/main.gd
   player/{wheelchair_body, wheelchair_input, wheelchair_debug, pickup_interactor}.gd
+  player/character_visual.gd
   world/movement_test.gd
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
@@ -35,11 +37,13 @@ docs/architecture.md
 - **Main** compone MovementTest, CursorController y un CanvasLayer HUD con
   InventoryUI. Inyecta Inventory y Equipment de PickupInteractor en InventoryUI.
 - **MovementTest** posee Player, seis obstáculos estáticos, cuatro bordes y tres
-  WorldItem. Conecta sus señales pickup_requested al PickupInteractor del Player.
-- **Player** tiene un RigidBody2D raíz, Sprite2D, CollisionShape2D, WheelchairInput,
+  WorldItem de prueba. Conecta sus señales pickup_requested al PickupInteractor del Player.
+- **Player** tiene un RigidBody2D raíz, CharacterVisual, CollisionShape2D, WheelchairInput,
   Camera2D, Debug y PickupInteractor. La cámara sigue su posición sin rotar.
   Debug recibe una referencia explícita a WheelchairInput.
   PickupInteractor posee Inventory y Equipment; la física no conoce esos estados.
+  También posee WeaponAim, FirearmController y Muzzle. CharacterVisual recibe
+  referencias explícitas al cuerpo y WheelchairInput, que utiliza solo para lectura.
 - **WorldItem** es un Area2D con colisión clickeable, marcador y Sprite2D.
   Recibe ItemDefinition por Inspector; no necesita conocer al jugador ni la UI.
 - **InventoryUI** es un Control de pantalla con botón Mochila, panel ocultable,
@@ -56,6 +60,7 @@ docs/architecture.md
 | wheelchair_body.gd | Fuerza longitudinal, torque, agarre lateral e impulso externo. | UI, pickup o reglas de inventario. |
 | wheelchair_input.gd | Tracking local del mouse, drag dentro del radio y prioridad de clicks. | Aplicar fuerzas o recoger items. |
 | wheelchair_debug.gd | Dibujar radio, cursor, inicio del gesto y frente. | Reglas físicas. |
+| character_visual.gd | Seleccionar poses de brazos y desplazar texturas de ruedas. | Leer eventos de input o modificar gameplay. |
 | pickup_interactor.gd | Poseer Inventory/Equipment, validar distancia y recoger cantidades. | Dibujar UI o mover la silla. |
 | item_definition.gd | Datos estáticos, máximo de stack y tipo de equipo. | Estado mutable por instancia. |
 | item_stack.gd | Valor runtime inmutable: definición y cantidad. | UI o drag preview. |
@@ -174,5 +179,83 @@ La definición compartida está separada de sus representaciones de mundo y UI.
 El estado individual futuro de un item no debe añadirse al Resource compartido.
 Los slots son Control y usan las APIs nativas de drag & drop. El ItemDefinition
 compartido permanece separado de ItemStack para que futuros estados individuales
-no entren al Resource compartido. No hay división de stacks, uso, drop al mundo,
-recargas ni sistema de armas activo.
+no entren al Resource compartido. No hay división de stacks, uso ni drop al mundo.
+Las armas existentes tienen FirearmDefinition y FirearmState por ItemStack;
+WeaponAim/FirearmController realizan apuntado, hitscan y recoil, y WeaponReloadUI
+presenta recarga manual. Esta presentación del personaje no depende de esos sistemas.
+
+## Presentation / Character Animation
+
+`scenes/player/character_visual.tscn` pertenece al Player y contiene, en orden de dibujo:
+
+```text
+CharacterVisual
+  WheelVisuals
+    RearLeft / RearRight / FrontLeft / FrontRight (rellenos repetibles)
+    Outline (Ruedas.png)
+  Chassis
+  Body
+  Head
+  LeftArm (AnimatedSprite2D)
+  RightArm (AnimatedSprite2D)
+```
+
+Un único script cohesivo, character_visual.gd, actualiza brazos y ruedas:
+
+```text
+WheelchairInput.drag_active + mouse_normalized_position (local)
+    -> CharacterVisual -> LeftArm / RightArm
+RigidBody2D.linear_velocity + orientación física
+    -> CharacterVisual -> region_rect de los cuatro rellenos
+```
+
+No interpreta eventos ni consulta Input. No escribe tracking, transform del cuerpo,
+velocidades o fuerzas; solo modifica la presentación.
+
+### Forward convention
+
+La física, WheelchairInput, debug, Muzzle y apuntado conservan **UP local** como
+frente; RIGHT local es la derecha de la silla. El arte mira hacia **DOWN local**
+cuando CharacterVisual tiene rotación cero. Su instancia dentro de Player lleva
+un offset visual fijo de PI: DOWN del arte coincide con UP del cuerpo.
+Player comienza con rotation = PI, por lo que ambos frentes miran DOWN mundial.
+No cambiar únicamente uno de estos offsets ni invertir el tracking por el arte.
+La cámara sigue la posición sin heredar la rotación.
+
+### Arms
+
+Cada brazo tiene idle (sprite sin número) y push (frames numerados atrás→adelante).
+Sin drag se selecciona idle. Durante drag, con mouse local normalizado (x, y):
+
+```text
+forward = -y
+left_progress  = clamp((forward + x + 1) / 2, 0, 1)
+right_progress = clamp((forward - x + 1) / 2, 0, 1)
+frame = round(progress * (N - 1))
+```
+
+N se consulta en el SpriteFrames de cada brazo. No hay reproducción a velocidad fija,
+ni dependencia del número cuatro, ni smoothing añadido. El giro del cuerpo no altera
+la interpretación porque la fuente ya expresa el mouse en coordenadas locales.
+
+### Wheels
+
+La proyección de linear_velocity sobre el frente mundial da la velocidad longitudinal.
+Cada región acumula velocidad * delta * wheel_scroll_scale y se envuelve según la
+altura de su textura. El desplazamiento lateral se ignora; inercia e impulsos externos
+(incluido recoil) animan las ruedas sin drag. Rotación pura no anima las ruedas todavía.
+
+Las texturas de 15×264 y 13×88 se repiten a tamaño nativo dentro de las cuatro ruedas;
+Ruedas.png se dibuja encima como borde. Sprite2D usa región y repetición, sin shader.
+Los lienzos de 448×448 están centrados y alineados. Cabeza.png es un recorte de
+101×140: su posición (0, -89) alinea la base con el cuello. Toda la composición se
+escala uniformemente a 0.12 en Player; la colisión existente permanece intacta.
+
+### Editor customization
+
+En character_visual.tscn se reemplazan las texturas de Chassis, Body, Head, Outline
+y los cuatro rellenos. La jerarquía/z_index define el orden de dibujo. LeftArm y
+RightArm tienen SpriteFrames independientes: agregar frames 5–8 al final de push
+(atrás→adelante) no requiere código. Cambiar idle reemplaza la pose de reposo.
+wheel_scroll_scale está en el Inspector de CharacterVisual; escala general y offset
+visual están en su instancia dentro de player.tscn. No hay rutas de sprites en el script.

@@ -3,15 +3,20 @@
 [ext_resource type="Script" uid="uid://cbmee6x67r0ht" path="res://scripts/player/wheelchair_body.gd" id="1"]
 [ext_resource type="Script" uid="uid://dv1p00nfqpjp8" path="res://scripts/player/wheelchair_input.gd" id="2"]
 [ext_resource type="Script" uid="uid://cf3mfr75qvnsr" path="res://scripts/player/wheelchair_debug.gd" id="3"]
-[ext_resource type="Texture2D" uid="uid://bsb1ks46orayv" path="res://icon.svg" id="4"]
-[ext_resource type="Script" path="res://scripts/player/pickup_interactor.gd" id="5"]
-[ext_resource type="Script" path="res://scripts/player/weapon_aim_controller.gd" id="6"]
-[ext_resource type="Script" path="res://scripts/player/firearm_controller.gd" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/player/character_visual.tscn" id="4"]
+[ext_resource type="Script" uid="uid://djavxc2j45hxd" path="res://scripts/player/pickup_interactor.gd" id="5"]
+[ext_resource type="Script" uid="uid://c4p8y1gng3mxw" path="res://scripts/player/weapon_aim_controller.gd" id="6"]
+[ext_resource type="Script" uid="uid://bjdr4jryou0xw" path="res://scripts/player/firearm_controller.gd" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/player/player_vision.tscn" id="8"]
 
 [sub_resource type="RectangleShape2D" id="ChairShape"]
-size = Vector2(46, 46)
+size = Vector2(36, 51)
+
+[sub_resource type="CanvasItemMaterial" id="DebugUnshaded"]
+light_mode = 1
 
 [node name="Player" type="RigidBody2D" unique_id=898238422]
+rotation = 3.1415927
 mass = 2.0
 gravity_scale = 0.0
 continuous_cd = 2
@@ -23,34 +28,48 @@ script = ExtResource("1")
 propulsion_force = 1.0
 turn_force = 20.0
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=989774081]
-scale = Vector2(0.35, 0.35)
-texture = ExtResource("4")
+[node name="CharacterVisual" parent="." unique_id=3488888 node_paths=PackedStringArray("mouse_input", "body", "aim") instance=ExtResource("4")]
+rotation = 3.1415927
+scale = Vector2(0.12, 0.12)
+mouse_input = NodePath("../WheelchairInput")
+body = NodePath("..")
+aim = NodePath("../WeaponAim")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=495710167]
+position = Vector2(7.1054274e-15, 0.5)
 shape = SubResource("ChairShape")
 
 [node name="WheelchairInput" type="Node2D" parent="." unique_id=1911036930]
 script = ExtResource("2")
+interaction_radius = 80.0
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1261430214]
+zoom = Vector2(2.5, 2.5)
 process_callback = 0
 
 [node name="Debug" type="Node2D" parent="." unique_id=849687554 node_paths=PackedStringArray("mouse_input")]
+light_mask = 0
+material = SubResource("DebugUnshaded")
 script = ExtResource("3")
 mouse_input = NodePath("../WheelchairInput")
 
-[node name="PickupInteractor" type="Node2D" parent="."]
+[node name="PickupInteractor" type="Node2D" parent="." unique_id=953266994]
 script = ExtResource("5")
+pickup_distance = 70.0
 
-[node name="Muzzle" type="Marker2D" parent="."]
+[node name="Muzzle" type="Marker2D" parent="." unique_id=1530252446]
 position = Vector2(0, -24)
 
-[node name="WeaponAim" type="Node2D" parent="."]
+[node name="WeaponAim" type="Node2D" parent="." unique_id=639980633]
+light_mask = 0
+material = SubResource("DebugUnshaded")
 script = ExtResource("6")
+aim_half_angle_degrees = 45.0
 
-[node name="FirearmController" type="Node2D" parent="." node_paths=PackedStringArray("aim", "body", "muzzle")]
+[node name="FirearmController" type="Node2D" parent="." unique_id=13664905 node_paths=PackedStringArray("aim", "body", "muzzle")]
 script = ExtResource("7")
 aim = NodePath("../WeaponAim")
 body = NodePath("..")
 muzzle = NodePath("../Muzzle")
+
+[node name="PlayerVision" parent="." unique_id=701222392 instance=ExtResource("8")]

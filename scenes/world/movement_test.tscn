@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1"]
 [ext_resource type="Script" path="res://scripts/world/movement_test.gd" id="2"]
@@ -24,8 +24,26 @@ size = Vector2(1152, 24)
 [sub_resource type="RectangleShape2D" id="VerticalWall"]
 size = Vector2(24, 720)
 
+[sub_resource type="OccluderPolygon2D" id="BoxOccluder"]
+polygon = PackedVector2Array(-50, -50, 50, -50, 50, 50, -50, 50)
+
+[sub_resource type="OccluderPolygon2D" id="BarOccluder"]
+polygon = PackedVector2Array(-90, -25, 90, -25, 90, 25, -90, 25)
+
+[sub_resource type="OccluderPolygon2D" id="HorizontalOccluder"]
+polygon = PackedVector2Array(-576, -12, 576, -12, 576, 12, -576, 12)
+
+[sub_resource type="OccluderPolygon2D" id="VerticalOccluder"]
+polygon = PackedVector2Array(-12, -360, 12, -360, 12, 360, -12, 360)
+
+[sub_resource type="OccluderPolygon2D" id="RoundOccluder"]
+polygon = PackedVector2Array(45, 0, 42.798, 13.906, 36.406, 26.45, 26.45, 36.406, 13.906, 42.798, 0, 45, -13.906, 42.798, -26.45, 36.406, -36.406, 26.45, -42.798, 13.906, -45, 0, -42.798, -13.906, -36.406, -26.45, -26.45, -36.406, -13.906, -42.798, 0, -45, 13.906, -42.798, 26.45, -36.406, 36.406, -26.45, 42.798, -13.906)
+
 [node name="MovementTest" type="Node2D"]
 script = ExtResource("2")
+
+[node name="AmbientDarkness" type="CanvasModulate" parent="."]
+color = Color(0.13, 0.14, 0.16, 1)
 
 [node name="Player" parent="." instance=ExtResource("1")]
 position = Vector2(260, 540)
@@ -120,6 +138,66 @@ definition = ExtResource("6")
 position = Vector2(235, 620)
 definition = ExtResource("8")
 
+[node name="LightOccluder2D" type="LightOccluder2D" parent="FrontBox"]
+occluder = SubResource("BoxOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="PassageLeft"]
+occluder = SubResource("BoxOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="PassageRight"]
+occluder = SubResource("BoxOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="UpperBar"]
+occluder = SubResource("BarOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="RoundCorner"]
+occluder = SubResource("RoundOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="RoundLower"]
+occluder = SubResource("RoundOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Top"]
+occluder = SubResource("HorizontalOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Bottom"]
+occluder = SubResource("HorizontalOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Left"]
+occluder = SubResource("VerticalOccluder")
+occluder_light_mask = 1
+
+[node name="LightOccluder2D" type="LightOccluder2D" parent="Right"]
+occluder = SubResource("VerticalOccluder")
+occluder_light_mask = 1
+
+[node name="VisionBehindWall" parent="." instance=ExtResource("3")]
+position = Vector2(260, 175)
+definition = ExtResource("4")
+
+[node name="VisionPartialWall" parent="." instance=ExtResource("3")]
+position = Vector2(368, 195)
+definition = ExtResource("4")
+
+[node name="VisionRoundEdge" parent="." instance=ExtResource("3")]
+position = Vector2(1005, 190)
+definition = ExtResource("4")
+
+[node name="VisionBoundary" parent="." instance=ExtResource("3")]
+position = Vector2(405, 470)
+definition = ExtResource("4")
+
+[connection signal="pickup_requested" from="VisionBehindWall" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="VisionPartialWall" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="VisionRoundEdge" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="VisionBoundary" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="NearItem" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="SecondItem" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="FarItem" to="Player/PickupInteractor" method="request_pickup"]

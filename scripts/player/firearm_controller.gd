@@ -1,12 +1,13 @@
 extends Node2D
 ## Input queues one trigger; all rays and recoil resolve during the physics step.
 
-signal shot_fired
+signal shot_fired(origin: Vector2, direction: Vector2)
 signal dry_fired
-signal tracer_requested(start: Vector2, end: Vector2)
+signal shot_resolved(result: ShotResult)
 
 const Equipment = preload("res://scripts/inventory/equipment.gd")
 const WeaponAim = preload("res://scripts/player/weapon_aim_controller.gd")
+const ShotResult = preload("res://scripts/combat/shot_result.gd")
 
 @export var aim: WeaponAim
 @export var body: RigidBody2D
@@ -14,6 +15,8 @@ const WeaponAim = preload("res://scripts/player/weapon_aim_controller.gd")
 @export_flags_2d_physics var collision_mask: int = 1
 
 var _equipment: Equipment
+## Optional composition-supplied Marker2D provider, evaluated with effective aim.
+var aim_muzzle_provider: Callable
 var _pending: bool = false
 var _cooldown: float = 0.0
 
@@ -57,6 +60,10 @@ func _physics_process(delta: float) -> void:
 	var config: FirearmDefinition = state.definition
 	var direction := aim.get_aim_direction()
 	var start := muzzle.global_position
+	if aim_muzzle_provider.is_valid():
+		var aim_muzzle: Marker2D = aim_muzzle_provider.call(direction)
+		if is_instance_valid(aim_muzzle):
+			start = aim_muzzle.global_position
 	_cooldown = config.fire_interval
 	var half_spread := deg_to_rad(config.spread_degrees) * 0.5
 	for pellet in config.pellet_count:
@@ -67,6 +74,6 @@ func _physics_process(delta: float) -> void:
 		var hit := get_world_2d().direct_space_state.intersect_ray(query)
 		if not hit.is_empty():
 			end = hit.position
-		tracer_requested.emit(start, end)
+		shot_resolved.emit(ShotResult.new(start, end, hit))
 	body.apply_external_impulse(-direction * config.recoil_impulse)
-	shot_fired.emit()
+	shot_fired.emit(start, direction)

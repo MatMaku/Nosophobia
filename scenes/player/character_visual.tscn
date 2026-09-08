@@ -1,0 +1,101 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/player/character_visual.gd" id="script"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Ruedas.png" id="wheels"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Rueda trasera.png" id="rear"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Rueda delantera.png" id="front"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Chasis.png" id="chassis"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Cuerpo.png" id="body"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Cabeza.png" id="head"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoI.png" id="li"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoD.png" id="ri"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoI 1.png" id="l1"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoD 1.png" id="r1"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoI 2.png" id="l2"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoD 2.png" id="r2"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoI 3.png" id="l3"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoD 3.png" id="r3"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoI 4.png" id="l4"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/BrazoD 4.png" id="r4"]
+
+[sub_resource type="SpriteFrames" id="lframes"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("li")}],
+"loop": false,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("l1")}, {"duration": 1.0, "texture": ExtResource("l2")}, {"duration": 1.0, "texture": ExtResource("l3")}, {"duration": 1.0, "texture": ExtResource("l4")}],
+"loop": false,
+"name": &"push",
+"speed": 1.0
+}]
+
+[sub_resource type="SpriteFrames" id="rframes"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("ri")}],
+"loop": false,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("r1")}, {"duration": 1.0, "texture": ExtResource("r2")}, {"duration": 1.0, "texture": ExtResource("r3")}, {"duration": 1.0, "texture": ExtResource("r4")}],
+"loop": false,
+"name": &"push",
+"speed": 1.0
+}]
+
+[node name="CharacterVisual" type="Node2D"]
+texture_filter = 1
+script = ExtResource("script")
+
+[node name="WheelVisuals" type="Node2D" parent="."]
+
+[node name="RearLeft" type="Sprite2D" parent="WheelVisuals"]
+texture_repeat = 2
+position = Vector2(-135.5, -44)
+texture = ExtResource("rear")
+region_enabled = true
+region_rect = Rect2(0, 0, 15, 264)
+
+[node name="RearRight" type="Sprite2D" parent="WheelVisuals"]
+texture_repeat = 2
+position = Vector2(133.5, -44)
+texture = ExtResource("rear")
+region_enabled = true
+region_rect = Rect2(0, 0, 15, 264)
+
+[node name="FrontLeft" type="Sprite2D" parent="WheelVisuals"]
+texture_repeat = 2
+position = Vector2(-127.5, 142)
+texture = ExtResource("front")
+region_enabled = true
+region_rect = Rect2(0, 0, 13, 88)
+
+[node name="FrontRight" type="Sprite2D" parent="WheelVisuals"]
+texture_repeat = 2
+position = Vector2(124.5, 142)
+texture = ExtResource("front")
+region_enabled = true
+region_rect = Rect2(0, 0, 13, 88)
+
+[node name="Outline" type="Sprite2D" parent="WheelVisuals"]
+texture = ExtResource("wheels")
+
+[node name="Chassis" type="Sprite2D" parent="."]
+texture = ExtResource("chassis")
+
+[node name="Body" type="Sprite2D" parent="."]
+texture = ExtResource("body")
+
+[node name="Head" type="Sprite2D" parent="."]
+position = Vector2(0, -89)
+texture = ExtResource("head")
+
+[node name="LeftArm" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("lframes")
+animation = &"idle"
+
+[node name="RightArm" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("rframes")
+animation = &"idle"
+

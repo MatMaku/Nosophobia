@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/weapon_fire_vfx.gd" id="1"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Muzzle flash.png" id="2"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 1.png" id="3"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 2.png" id="4"]
+[ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 3.png" id="5"]
+
+[node name="WeaponFireVFX" type="Node2D"]
+z_index = 5
+script = ExtResource("1")
+smoke_textures = Array[Texture2D]([ExtResource("3"), ExtResource("4"), ExtResource("5")])
+
+[node name="FlashTemplate" type="Sprite2D" parent="."]
+visible = false
+scale = Vector2(0.08, 0.08)
+texture = ExtResource("2")
+offset = Vector2(0, 138.5)
+
+[node name="SmokeTemplate" type="Sprite2D" parent="."]
+visible = false
+modulate = Color(1, 1, 1, 0.45)
+scale = Vector2(0.06, 0.06)

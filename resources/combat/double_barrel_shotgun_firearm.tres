@@ -1,13 +1,13 @@
-[gd_resource type="Resource" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="FirearmDefinition" format=3 uid="uid://dy56ry5wlyf6f"]
 
-[ext_resource type="Script" path="res://scripts/combat/firearm_definition.gd" id="1"]
+[ext_resource type="Script" uid="uid://ch32x7d4lmqp6" path="res://scripts/combat/firearm_definition.gd" id="1"]
 [ext_resource type="Resource" path="res://resources/items/shotgun_shell.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
 compatible_ammo = ExtResource("2")
 capacity = 2
-pellet_count = 8
+pellet_count = 4
 spread_degrees = 18.0
 range = 600.0
 recoil_impulse = 190.0

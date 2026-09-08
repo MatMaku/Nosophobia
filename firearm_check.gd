@@ -90,6 +90,8 @@ func _run() -> void:
 	root.add_child(main)
 	await ticks()
 	var player = main.get_node("MovementTest/Player")
+	# This fixture checks the upper obstacle; production now starts facing down.
+	player.rotation = 0.0
 	var pickup = player.get_node("PickupInteractor")
 	var aim = player.get_node("WeaponAim")
 	var firearm = player.get_node("FirearmController")
@@ -97,11 +99,11 @@ func _run() -> void:
 	var ui = main.get_node("HUD/InventoryUI")
 	var reload_ui = main.get_node("HUD/WeaponReloadUI")
 	var cursor = main.get_node("CursorController")
-	firearm.shot_fired.connect(func(): shots += 1)
+	firearm.shot_fired.connect(func(_origin: Vector2, _direction: Vector2): shots += 1)
 	firearm.dry_fired.connect(func(): dry += 1)
-	firearm.tracer_requested.connect(func(start: Vector2, end: Vector2):
-		starts.append(start)
-		segments.append(end))
+	firearm.shot_resolved.connect(func(result):
+		starts.append(result.start)
+		segments.append(result.end))
 	var center: Vector2 = player.get_global_transform_with_canvas().origin
 	await button(center + Vector2(0, -90), MOUSE_BUTTON_RIGHT, true)
 	check(not aim.is_aiming, "no weapon means no aiming")
@@ -181,7 +183,7 @@ func _run() -> void:
 	await click(center + Vector2(0, -120))
 	check(shots == 2, "cooldown rejects rapid repeated trigger")
 	await button(center, MOUSE_BUTTON_RIGHT, false)
-	await ticks(20)
+	await ticks(40)
 	check(main.get_node("Tracers").get_child_count() == 0, "tracers fade and free themselves")
 	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
 	check(state.get_loaded_count() == 1 and state.is_loaded(4), "reopen reflects remaining chamber")
@@ -226,7 +228,8 @@ func _run() -> void:
 	await click(center + Vector2(0, -120))
 	check(shots == prior_shots + 1 and state.get_loaded_count() == 1,
 		"shotgun consumes one shell per trigger")
-	check(segments.size() == prior_segments + 8, "shotgun creates eight rays and tracers")
+	check(segments.size() == prior_segments + shotgun.firearm.pellet_count,
+		"shotgun creates one ray and tracer per configured pellet")
 	var base := Vector2.UP.rotated(player.global_rotation)
 	for index in range(prior_segments, segments.size()):
 		var ray := segments[index] - starts[index]

@@ -11,3 +11,4 @@ enum EquipmentSlotType { NONE, WEAPON }
 @export var firearm: FirearmDefinition
 @export_group("Presentation")
 @export var reload_layout: PackedScene
+@export var aim_pose: PackedScene
