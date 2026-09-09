@@ -15,6 +15,7 @@ const ShotResult = preload("res://scripts/combat/shot_result.gd")
 @onready var _character_visual = $MovementTest/Player/CharacterVisual
 @onready var _vision = $MovementTest/Player/PlayerVision
 @onready var _world = $MovementTest
+@onready var _camera = $MovementTest/Player/Camera2D
 
 
 func _ready() -> void:
@@ -28,7 +29,7 @@ func _ready() -> void:
 	_firearm.bind_equipment(_pickup.equipment)
 	_character_visual.bind_equipment(_pickup.equipment)
 	_firearm.aim_muzzle_provider = _character_visual.get_aim_muzzle
-	_firearm.shot_fired.connect($WeaponFireVFX.show_shot)
+	_firearm.shot_fired.connect(_show_shot_presentation)
 	_firearm.shot_fired.connect(_character_visual.show_recoil)
 	_aim.aiming_changed.connect(_sync_movement_gate)
 	_ui.panel_changed.connect(_on_inventory_panel_changed)
@@ -81,6 +82,14 @@ func _show_shot_result(result: ShotResult) -> void:
 	tracer.show_segment(result.start, result.end)
 	if result.hit:
 		$WeaponFireVFX.show_impact(result.end, result.collision_normal)
+
+
+func _show_shot_presentation(origin: Vector2, direction: Vector2) -> void:
+	var feedback: Dictionary = _character_visual.get_shot_feedback()
+	$WeaponFireVFX.show_shot(origin, direction,
+		feedback.get("light_energy", -1.0), feedback.get("light_duration", -1.0))
+	_camera.shake(feedback.get("shake_strength", 0.0),
+		feedback.get("shake_duration", 0.0))
 
 
 func _drop_inventory_stack(slot_index: int, expected, screen_position: Vector2) -> void:

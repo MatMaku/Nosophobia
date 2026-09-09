@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://c4p8y1gng3mxw" path="res://scripts/player/weapon_aim_controller.gd" id="6"]
 [ext_resource type="Script" uid="uid://bjdr4jryou0xw" path="res://scripts/player/firearm_controller.gd" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/player/player_vision.tscn" id="8"]
+[ext_resource type="Script" path="res://scripts/player/camera_shake.gd" id="9"]
 
 [sub_resource type="RectangleShape2D" id="ChairShape"]
 size = Vector2(36, 51)
@@ -47,6 +48,7 @@ interaction_radius = 80.0
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1261430214]
 zoom = Vector2(2.5, 2.5)
 process_callback = 0
+script = ExtResource("9")
 
 [node name="Debug" type="Node2D" parent="." unique_id=849687554 node_paths=PackedStringArray("mouse_input")]
 light_mask = 0

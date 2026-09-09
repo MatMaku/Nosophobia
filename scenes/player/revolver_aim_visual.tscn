@@ -5,3 +5,7 @@
 [node name="RevolverAimVisual" instance=ExtResource("1")]
 visual_recoil_distance = 12.0
 visual_recoil_return_time = 0.09
+camera_shake_strength = 1.1
+camera_shake_duration = 0.08
+muzzle_light_energy = 1.1
+muzzle_light_duration = 0.045

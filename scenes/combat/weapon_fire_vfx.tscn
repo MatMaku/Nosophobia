@@ -1,10 +1,22 @@
-[gd_scene format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/weapon_fire_vfx.gd" id="1"]
 [ext_resource type="Texture2D" path="res://Sprites/Personaje/Muzzle flash.png" id="2"]
 [ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 1.png" id="3"]
 [ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 2.png" id="4"]
 [ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 3.png" id="5"]
+
+[sub_resource type="Gradient" id="MuzzleLightGradient"]
+offsets = PackedFloat32Array(0, 0.42, 0.72, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 0.9, 0.55, 0.95, 1, 0.55, 0.18, 0.35, 1, 0.25, 0.05, 0)
+
+[sub_resource type="GradientTexture2D" id="MuzzleLightTexture"]
+gradient = SubResource("MuzzleLightGradient")
+width = 128
+height = 128
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
 
 [node name="WeaponFireVFX" type="Node2D"]
 z_index = 5
@@ -23,3 +35,15 @@ light_mask = 2
 visible = false
 modulate = Color(1, 1, 1, 0.45)
 scale = Vector2(0.06, 0.06)
+
+[node name="LightTemplate" type="PointLight2D" parent="."]
+visible = false
+texture = SubResource("MuzzleLightTexture")
+color = Color(1, 0.72, 0.38, 1)
+energy = 1.2
+texture_scale = 0.45
+range_item_cull_mask = 2
+shadow_enabled = true
+shadow_filter = 1
+shadow_filter_smooth = 1.0
+shadow_item_cull_mask = 2

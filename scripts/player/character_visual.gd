@@ -73,6 +73,10 @@ func get_aim_muzzle(direction: Vector2) -> Marker2D:
 	return _pose.get_muzzle()
 
 
+func get_shot_feedback() -> Dictionary:
+	return _pose.get_shot_feedback() if is_instance_valid(_pose) else {}
+
+
 func show_recoil(_origin: Vector2, direction: Vector2) -> void:
 	if is_instance_valid(_pose) and aim.is_aiming:
 		_pose.show_recoil(direction)
