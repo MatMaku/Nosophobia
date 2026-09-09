@@ -16,6 +16,7 @@ size = Vector2(36, 51)
 light_mode = 1
 
 [node name="Player" type="RigidBody2D" unique_id=898238422]
+z_index = 1
 rotation = 3.1415927
 mass = 2.0
 gravity_scale = 0.0

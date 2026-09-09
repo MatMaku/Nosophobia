@@ -110,6 +110,8 @@ func _run() -> void:
 	await button(center, MOUSE_BUTTON_RIGHT, false)
 
 	var world = main.get_node("MovementTest/TestWeapon")
+	world.global_position = player.global_position + Vector2.UP * pickup.pickup_distance * 0.5
+	await ticks(1)
 	await click(world.get_global_transform_with_canvas().origin)
 	check(not is_instance_valid(world), "revolver picked up by actual world click")
 	pickup.inventory.try_add(ammo, 30)
@@ -127,9 +129,9 @@ func _run() -> void:
 	check(state.get_capacity() == 6 and state.get_loaded_count() == 0, "revolver starts empty")
 	check(reload_ui.get_node("WeaponButton").visible, "weapon HUD button appears")
 	await button(center + Vector2(0, -90), MOUSE_BUTTON_RIGHT, true)
-	check(not aim.is_aiming, "inventory open blocks aiming")
+	check(aim.is_aiming and not ui.is_open(),
+		"inventory outside RMB closes panel and aims")
 	await button(center, MOUSE_BUTTON_RIGHT, false)
-	await click(ui.get_node("BackpackButton").get_global_rect().get_center())
 	await button(center + Vector2(0, -90), MOUSE_BUTTON_RIGHT, true)
 	check(aim.is_aiming and not movement.input_enabled, "RMB aims and explicitly blocks movement")
 	check(cursor.current_state == cursor.State.AIMING, "aiming cursor state")
@@ -150,8 +152,10 @@ func _run() -> void:
 	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
 	check(reload_ui.is_open() and reload_ui.get_loose_count() == 6, "0/6 plus 30 shows six tokens")
 	await button(center, MOUSE_BUTTON_RIGHT, true)
-	check(not aim.is_aiming, "reload open blocks aiming")
+	check(aim.is_aiming and not reload_ui.is_open(),
+		"reload outside RMB closes panel and aims")
 	await button(center, MOUSE_BUTTON_RIGHT, false)
+	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
 	var sockets = reload_ui.get_node("Panel/Margin/Content/LayoutHost").get_child(0).get_node("Sockets")
 	var loose = reload_ui.get_node("Panel/Margin/Content/LooseRounds")
 	await drag_to(loose.get_child(0), sockets.get_child(0).get_global_rect().get_center())

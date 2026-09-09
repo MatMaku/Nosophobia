@@ -36,6 +36,7 @@ func bind_equipment(equipment: Equipment) -> void:
 	_equipment = equipment
 	_equipment.changed.connect(_rebuild_pose)
 	aim.aiming_changed.connect(_sync_aim)
+	aim.aim_updated.connect(_sync_aim)
 	_rebuild_pose()
 
 
@@ -58,13 +59,13 @@ func _sync_aim() -> void:
 		layer.visible = not active
 	if is_instance_valid(_pose):
 		if _pose.visible and not active:
-			_pose.reset_recoil()
+			_pose.reset_recoil(true)
 		_pose.visible = active
 		if active:
 			_pose.update_direction(aim.get_aim_direction())
 
 
-## Synchronize at shot time so the muzzle cannot lag one frame behind the mouse.
+## Apply the shared final aim at shot time before sampling the real muzzle position.
 func get_aim_muzzle(direction: Vector2) -> Marker2D:
 	if not is_instance_valid(_pose):
 		return null

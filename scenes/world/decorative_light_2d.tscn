@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://bxhrfdpe6ethy"]
+
+[ext_resource type="Script" uid="uid://cnluewx11lf0n" path="res://scripts/world/decorative_light_2d.gd" id="1"]
+
+[node name="DecorativeLight2D" type="Node2D" unique_id=1930043959]
+script = ExtResource("1")
+noise_amount = 0.05
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=809296133]
+color = Color(1, 0.88, 0.72, 1)
+range_item_cull_mask = 2
+shadow_enabled = true
+shadow_filter = 1
+shadow_filter_smooth = 1.5
+shadow_item_cull_mask = 2

@@ -65,3 +65,19 @@ func _toggle_panel() -> void:
 
 func is_open() -> bool:
 	return _panel.visible
+
+
+func close_panel() -> bool:
+	if not _panel.visible:
+		return false
+	_panel.hide()
+	panel_changed.emit()
+	return true
+
+
+func close_for_outside_click(screen_position: Vector2) -> bool:
+	if not is_open() or _panel.get_global_rect().has_point(screen_position):
+		return false
+	if _button.get_global_rect().has_point(screen_position):
+		return false
+	return close_panel()

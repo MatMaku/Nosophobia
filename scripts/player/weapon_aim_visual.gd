@@ -31,7 +31,9 @@ func show_recoil(direction: Vector2) -> void:
 		visual_recoil_return_time).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
-func reset_recoil() -> void:
+func reset_recoil(reset_rotation: bool = false) -> void:
 	if _recoil_tween != null and _recoil_tween.is_valid():
 		_recoil_tween.kill()
 	_upper.position = _rest_position
+	if reset_rotation:
+		_upper.rotation = 0.0

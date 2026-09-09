@@ -14,19 +14,23 @@ scenes/
   app/main.tscn
   player/player.tscn
   player/character_visual.tscn
+  player/player_vision.tscn
   world/movement_test.tscn
+  world/decorative_light_2d.tscn
+  world/visibility_fog.tscn
   items/world_item.tscn
   ui/inventory_ui.tscn
   ui/inventory_slot.tscn
   ui/item_drag_preview.tscn
+  ui/weapon_reload_ui.tscn
 scripts/
   app/main.gd
   player/{wheelchair_body, wheelchair_input, wheelchair_debug, pickup_interactor}.gd
-  player/character_visual.gd
-  world/movement_test.gd
+  player/{character_visual, player_vision}.gd
+  world/{movement_test, decorative_light_2d}.gd
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
-  ui/{cursor_controller, inventory_ui, inventory_slot}.gd
+  ui/{cursor_controller, inventory_ui, inventory_slot, world_drop_target}.gd
 resources/items/{test_item, test_ammo, test_weapon}.tres
 Sprites/Cursor/{Cursor Default, Cursor Abierto, Cursor Agarrando}.png
 docs/architecture.md
@@ -34,10 +38,11 @@ docs/architecture.md
 
 ## Scene ownership
 
-- **Main** compone MovementTest, CursorController y un CanvasLayer HUD con
-  InventoryUI. Inyecta Inventory y Equipment de PickupInteractor en InventoryUI.
-- **MovementTest** posee Player, seis obstáculos estáticos, cuatro bordes y tres
-  WorldItem de prueba. Conecta sus señales pickup_requested al PickupInteractor del Player.
+- **Main** compone MovementTest, CursorController, fog/VFX y un CanvasLayer HUD con
+  InventoryUI, WeaponReloadUI y WorldDropTarget. Inyecta los modelos y coordina
+  handoff de input y transferencias de drop sin poseer reglas de inventario.
+- **MovementTest** posee Player, obstáculos, bordes, luces y WorldItems de prueba.
+  Conecta pickup_requested y crea WorldItems soltados cerca del Player.
 - **Player** tiene un RigidBody2D raíz, CharacterVisual, CollisionShape2D, WheelchairInput,
   Camera2D, Debug y PickupInteractor. La cámara sigue su posición sin rotar.
   Debug recibe una referencia explícita a WheelchairInput.
@@ -45,31 +50,40 @@ docs/architecture.md
   También posee WeaponAim, FirearmController y Muzzle. CharacterVisual recibe
   referencias explícitas al cuerpo y WheelchairInput, que utiliza solo para lectura.
 - **WorldItem** es un Area2D con colisión clickeable, marcador y Sprite2D.
-  Recibe ItemDefinition por Inspector; no necesita conocer al jugador ni la UI.
+  Puede recibir ItemDefinition/cantidad por Inspector o un ItemStack runtime al
+  ser soltado; no necesita conocer al jugador ni la UI.
 - **InventoryUI** es un Control de pantalla con botón Mochila, panel ocultable,
   GridContainer y un único WeaponSlot. Instancia InventorySlot según la capacidad.
   Los controles viven bajo HUD, independientes de la cámara.
 - **InventorySlot** es un PanelContainer con icono, nombre y cantidad. Inicia y
   recibe drag & drop nativo; solicita operaciones a los modelos, sin almacenarlos.
+- **WorldDropTarget** es un Control fullscreen ubicado detrás de las UIs. Solo
+  acepta drags nacidos en slots normales; los clicks comunes pasan sin consumirse.
+- **DecorativeLight2D** compone un PointLight2D con sombra y genera su máscara
+  irregular al iniciar. Es iluminación visual reutilizable y no altera PlayerVision.
 
 ## Script responsibilities
 
 | Script | Responsabilidad | No hace |
 | --- | --- | --- |
-| main.gd | Componer UI, modelos y contexto semántico del cursor. | Reglas de pickup o almacenamiento. |
+| main.gd | Componer UI/modelos, cursor, input handoff y drop al mundo. | Reglas de pickup o almacenamiento. |
 | wheelchair_body.gd | Fuerza longitudinal, torque, agarre lateral e impulso externo. | UI, pickup o reglas de inventario. |
 | wheelchair_input.gd | Tracking local del mouse, drag dentro del radio y prioridad de clicks. | Aplicar fuerzas o recoger items. |
 | wheelchair_debug.gd | Dibujar radio, cursor, inicio del gesto y frente. | Reglas físicas. |
 | character_visual.gd | Seleccionar poses de brazos y desplazar texturas de ruedas. | Leer eventos de input o modificar gameplay. |
+| weapon_aim_controller.gd | Target, seguimiento angular, sway y dirección final compartida. | Spread, recoil o sistema de salud. |
+| weapon_aim_visual.gd | Orientar AimUpperBody/AimMuzzle y desplazar el torso por recoil. | Interpolar una segunda dirección de aim. |
 | pickup_interactor.gd | Poseer Inventory/Equipment, validar distancia y recoger cantidades. | Dibujar UI o mover la silla. |
 | item_definition.gd | Datos estáticos, máximo de stack y tipo de equipo. | Estado mutable por instancia. |
 | item_stack.gd | Valor runtime inmutable: definición y cantidad. | UI o drag preview. |
 | inventory.gd | Slots ordenados, stacks, inserción, merge, swap y consulta. | SceneTree, UI o posición del jugador. |
 | equipment.gd | Un arma equipada y transferencias verificadas con Inventory. | Labels, iconos o nodos UI. |
-| world_item.gd | Mostrar su definición y emitir una solicitud al recibir click. | Inventario o búsqueda de Player. |
+| world_item.gd | Mostrar el item, conservar stack runtime y solicitar pickup. | Inventario o búsqueda de Player. |
 | cursor_controller.gd | Aplicar cursor hardware según contexto semántico. | Reglas de WorldItem, UI o silla. |
 | inventory_ui.gd | Observar modelos, refrescar slots y abrir/cerrar el panel. | Ser fuente de verdad de los items. |
 | inventory_slot.gd | Mostrar stack e invocar APIs nativas de drag/drop. | Usar o poseer items. |
+| world_drop_target.gd | Solicitar un drop al mundo desde un drag válido. | Instanciar WorldItem o modificar Inventory. |
+| decorative_light_2d.gd | Generar máscara irregular y variación temporal sutil. | Visibilidad del jugador o gameplay. |
 | movement_test.gd | Dibujar la pista a partir de sus colisiones estáticas. | Reglas de inventario. |
 
 ## Data models
@@ -80,11 +94,12 @@ docs/architecture.md
 - **ItemStack**: RefCounted inmutable con ItemDefinition y quantity. Cada stack
   cumple 1 <= quantity <= max_stack_size.
 - **Inventory**: RefCounted independiente del SceneTree, creado por cada
-  PickupInteractor. Mantiene un array privado de referencias a definiciones
+  PickupInteractor. Mantiene un array privado de ItemStack
   (null significa slot vacío). La capacidad se fija al crearlo; el Inspector del
   PickupInteractor configura inventory_capacity para el siguiente inicio.
   try_add llena primero stacks compatibles y luego slots vacíos; devuelve las
-  unidades insertadas. move realiza move, merge parcial/completo o swap.
+  unidades insertadas. try_add_stack conserva el mismo valor runtime cuando entra
+  completo y take extrae ese valor exacto. move realiza move, merge o swap.
   Ocultar o reconstruir la vista no modifica este estado.
 - **Equipment**: RefCounted con un único ItemStack de arma. Es el estado lógico
   del equipamiento; valida compatibilidad y coordina intercambios con Inventory.
@@ -96,13 +111,21 @@ WorldItem --pickup_requested--> PickupInteractor
                                   |
                             valida distancia
                                   |
-                         Inventory.try_add(quantity)
+                    Inventory.try_add/try_add_stack
                                   |
           éxito total: WorldItem.queue_free; parcial: reduce quantity
 
 Inventory --changed--> InventoryUI --> InventorySlot.refresh
 Equipment --changed--> InventoryUI --> WeaponSlot + indicador
 Main --------bind_inventory--------^
+
+InventorySlot --drag nativo--> WorldDropTarget --drop requested--> Main
+                                                               |
+                                      MovementTest.spawn_dropped_item
+                                                               |
+                                  spawn correcto -> Inventory.take
+                                                               |
+                                                           WorldItem
 
 WheelchairInput --consume_motion--> WheelchairBody --> fuerzas/torque
         |
@@ -127,11 +150,22 @@ eliminación para impedir recogidas duplicadas en el mismo frame.
    La consulta no recoge items ni calcula distancias de pickup.
 4. Player y obstáculos usan la capa física 1. WorldItem usa capa 2 y máscara 0:
    es clickeable pero no bloquea el movimiento del cuerpo.
+5. Main observa LMB/RMB presionados antes de GUI. Si el punto queda fuera del
+   panel/botón abierto, lo cierra sin manejar ni recrear el InputEvent. Las señales
+   actualizan los gates sincrónicamente y el mismo evento continúa una sola vez
+   hacia GUI y gameplay _unhandled_input. Un press interior y el release de un drag
+   no activan esta regla.
 
-Los slots usan _get_drag_data, _can_drop_data y _drop_data de Control. Iniciar o
-cancelar drag no modifica modelos. Drop entre slots mueve a vacío, fusiona el mismo
-item hasta max_stack_size o intercambia items diferentes. Drop inválido o fuera de
-la UI conserva el origen. Abrir la mochila no pausa el juego.
+Los slots usan _get_drag_data, _can_drop_data y _drop_data de Control. Iniciar un
+drag no modifica modelos. Drop entre slots mueve a vacío, fusiona el mismo item hasta
+max_stack_size o intercambia items diferentes. WorldDropTarget recibe únicamente el
+drop sobre mundo: Main prepara primero el WorldItem y solo entonces usa Inventory.take.
+Si falla el spawn o el slot cambió, revierte el nodo y conserva el item. Se transfiere
+el stack completo, incluida la misma referencia y su estado runtime de arma.
+
+MovementTest limita el spawn a drop_distance desde Player, usa la dirección al mouse
+o el frente local como fallback y prueba offsets pequeños contra paredes y WorldItems.
+No aplica física ni permite tirar directamente a una posición lejana.
 
 ## Cursor
 
@@ -179,7 +213,7 @@ La definición compartida está separada de sus representaciones de mundo y UI.
 El estado individual futuro de un item no debe añadirse al Resource compartido.
 Los slots son Control y usan las APIs nativas de drag & drop. El ItemDefinition
 compartido permanece separado de ItemStack para que futuros estados individuales
-no entren al Resource compartido. No hay división de stacks, uso ni drop al mundo.
+no entren al Resource compartido. No hay división de stacks, uso ni lanzamiento físico.
 Las armas existentes tienen FirearmDefinition y FirearmState por ItemStack;
 WeaponAim/FirearmController realizan apuntado, hitscan y recoil, y WeaponReloadUI
 presenta recarga manual. Esta presentación del personaje no depende de esos sistemas.
@@ -259,3 +293,51 @@ RightArm tienen SpriteFrames independientes: agregar frames 5–8 al final de pu
 (atrás→adelante) no requiere código. Cambiar idle reemplaza la pose de reposo.
 wheel_scroll_scale está en el Inspector de CharacterVisual; escala general y offset
 visual están en su instancia dentro de player.tscn. No hay rutas de sprites en el script.
+
+## Aim weight and sway
+
+WeaponAim (weapon_aim_controller.gd), propiedad del Player, es la única fuente del aim:
+
+```text
+Mouse -> desired (direction_toward) -> arco -> target_aim_direction
+    -> seguimiento exponencial -> current_aim_direction
+    -> drift + tremor -> clamp al arco -> final_aim_direction / get_aim_direction()
+        |-> CharacterVisual -> AimUpperBody -> AimMuzzle
+        |-> debug: target azul, current verde, final amarillo
+        `-> FirearmController -> spread del arma -> raycast
+```
+
+Desired es la intención inmediata; target la limita al cono. Current es lo alcanzado
+por el arma; final añade inestabilidad humana. Los ángulos se guardan respecto a UP
+local de la silla: el arco acompaña su rotación. El seguimiento usa lerp_angle con
+1 - exp(-aim_follow_speed * delta); 10 por defecto alcanza 95% en unos 0.3 s.
+Se actualiza en física con prioridad -10 antes del FirearmController (prioridad 0).
+aim_updated sincroniza la pose; el proveedor de muzzle vuelve a aplicar esa misma
+dirección al disparar antes de leer AimMuzzle.global_position. Ningún consumidor
+reinterpreta el mouse ni interpola por separado. El offset visual del arte se conserva.
+
+Drift y tremor mezclan dos senos de frecuencias diferentes, continuos y acotados.
+Los valores del Inspector de WeaponAim están en grados y Hz: drift sano/crítico
+0.4/2.0 a 0.35 Hz; tremor 0.06/0.25 a 3 Hz; blend inicial 0.15 s.
+set_health_ratio(value) acepta 0..1 y parte de 1.0. Solo escala amplitudes: la Curve
+opcional health_sway_curve recibe 1 - health_ratio; sin Curve usa lesión al cubo.
+Este es el punto para conectar salud posteriormente; no existe un Health nuevo.
+
+RMB empieza desde forward, con sway cero. Soltar RMB, bloquear input o cambiar equipo
+reinicia los ángulos y cancela/restaura el recoil visual. El recoil sigue siendo un
+offset de posición y no altera el seguimiento. Cursor inmediato, spread por pellet
+y recoil físico permanecen independientes; todos los pellets comparten el mismo final.
+
+## Decorative lighting and visibility
+
+DecorativeLight2D continúa siendo PointLight2D con sombras. Su script crea una textura
+128x128 una vez al iniciar: edge_hardness estrecha y escalona el borde; noise_amount y
+noise_scale deforman ligeramente la máscara. noise_speed anima solo una oscilación muy
+sutil de energía; cero la desactiva. Color, energy, escala y suavidad de sombra siguen
+editándose en el PointLight2D hijo.
+
+Las luces decorativas iluminan CanvasItems en la máscara visual 2 y sus occluders usan
+esa misma máscara. PlayerVision renderiza su propia máscara de visibilidad en un
+SubViewport separado usando copias de nodos occluder que comparten los mismos recursos
+OccluderPolygon2D. VisibilityFog compone esa máscara sobre el mundo antes de Grain y HUD.
+Por ello una lámpara nunca revela zonas que PlayerVision mantiene ocultas.

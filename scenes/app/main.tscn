@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cbo71d27aixsj"]
 
 [ext_resource type="PackedScene" path="res://scenes/world/movement_test.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/ui/inventory_ui.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://beypt4kvtrorc" path="res://scenes/ui/inventory_ui.tscn" id="2"]
 [ext_resource type="Script" uid="uid://d0o2wk81dqb03" path="res://scripts/app/main.gd" id="3"]
 [ext_resource type="Script" uid="uid://cqbx5eli5biqb" path="res://scripts/ui/cursor_controller.gd" id="4"]
 [ext_resource type="Texture2D" uid="uid://p1727pwhslf8" path="res://Sprites/Cursor/Cursor Default.png" id="5"]
@@ -11,8 +11,9 @@
 [ext_resource type="PackedScene" path="res://scenes/combat/bullet_tracer.tscn" id="9"]
 [ext_resource type="Texture2D" uid="uid://qyc6gjiss42t" path="res://Sprites/Cursor/aim_cursor.svg" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/combat/weapon_fire_vfx.tscn" id="11"]
-
-[ext_resource type="PackedScene" path="res://scenes/ui/grain_overlay.tscn" id="12"]
+[ext_resource type="PackedScene" uid="uid://bsl6jmqg2x50p" path="res://scenes/ui/grain_overlay.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/world/visibility_fog.tscn" id="13"]
+[ext_resource type="Script" path="res://scripts/ui/world_drop_target.gd" id="14"]
 
 [node name="Main" type="Node2D" unique_id=989231918]
 script = ExtResource("3")
@@ -28,6 +29,17 @@ aiming_texture = ExtResource("10")
 [node name="MovementTest" parent="." unique_id=1250844776 instance=ExtResource("1")]
 
 [node name="HUD" type="CanvasLayer" parent="." unique_id=1544123370]
+layer = 3
+
+[node name="WorldDropTarget" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("14")
 
 [node name="InventoryUI" parent="HUD" unique_id=189176192 instance=ExtResource("2")]
 
@@ -37,4 +49,7 @@ aiming_texture = ExtResource("10")
 
 [node name="WeaponFireVFX" parent="." unique_id=1640063278 instance=ExtResource("11")]
 
-[node name="GrainOverlay" parent="." instance=ExtResource("12")]
+[node name="GrainOverlay" parent="." unique_id=1100799727 instance=ExtResource("12")]
+layer = 2
+
+[node name="VisibilityFog" parent="." unique_id=414475813 instance=ExtResource("13")]

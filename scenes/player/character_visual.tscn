@@ -51,6 +51,7 @@ script = ExtResource("script")
 [node name="WheelVisuals" type="Node2D" parent="."]
 
 [node name="RearLeft" type="Sprite2D" parent="WheelVisuals"]
+light_mask = 2
 texture_repeat = 2
 position = Vector2(-135.5, -44)
 texture = ExtResource("rear")
@@ -58,6 +59,7 @@ region_enabled = true
 region_rect = Rect2(0, 0, 15, 264)
 
 [node name="RearRight" type="Sprite2D" parent="WheelVisuals"]
+light_mask = 2
 texture_repeat = 2
 position = Vector2(133.5, -44)
 texture = ExtResource("rear")
@@ -65,6 +67,7 @@ region_enabled = true
 region_rect = Rect2(0, 0, 15, 264)
 
 [node name="FrontLeft" type="Sprite2D" parent="WheelVisuals"]
+light_mask = 2
 texture_repeat = 2
 position = Vector2(-127.5, 142)
 texture = ExtResource("front")
@@ -72,6 +75,7 @@ region_enabled = true
 region_rect = Rect2(0, 0, 13, 88)
 
 [node name="FrontRight" type="Sprite2D" parent="WheelVisuals"]
+light_mask = 2
 texture_repeat = 2
 position = Vector2(124.5, 142)
 texture = ExtResource("front")
@@ -79,23 +83,28 @@ region_enabled = true
 region_rect = Rect2(0, 0, 13, 88)
 
 [node name="Outline" type="Sprite2D" parent="WheelVisuals"]
+light_mask = 2
 texture = ExtResource("wheels")
 
 [node name="Chassis" type="Sprite2D" parent="."]
+light_mask = 2
 texture = ExtResource("chassis")
 
 [node name="Body" type="Sprite2D" parent="."]
+light_mask = 2
 texture = ExtResource("body")
 
 [node name="Head" type="Sprite2D" parent="."]
+light_mask = 2
 position = Vector2(0, -89)
 texture = ExtResource("head")
 
 [node name="LeftArm" type="AnimatedSprite2D" parent="."]
+light_mask = 2
 sprite_frames = SubResource("lframes")
 animation = &"idle"
 
 [node name="RightArm" type="AnimatedSprite2D" parent="."]
+light_mask = 2
 sprite_frames = SubResource("rframes")
 animation = &"idle"
-

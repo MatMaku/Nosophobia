@@ -26,8 +26,10 @@ func can_pickup(world_item: WorldItem) -> bool:
 func request_pickup(world_item: WorldItem) -> void:
 	if not can_pickup(world_item):
 		return
-	var added := inventory.try_add(world_item.definition, world_item.quantity)
+	var runtime_stack = world_item.get_item_stack()
+	var added := inventory.try_add_stack(runtime_stack) if runtime_stack != null \
+		else inventory.try_add(world_item.definition, world_item.quantity)
 	if added == world_item.quantity:
 		world_item.queue_free()
 	elif added > 0:
-		world_item.quantity -= added
+		world_item.remove_quantity(added)

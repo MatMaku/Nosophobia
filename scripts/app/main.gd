@@ -6,16 +6,24 @@ const ShotResult = preload("res://scripts/combat/shot_result.gd")
 @export var tracer_scene: PackedScene
 
 @onready var _pickup = $MovementTest/Player/PickupInteractor
-@onready var _input = $MovementTest/Player/WheelchairInput
+@onready var _wheelchair_input = $MovementTest/Player/WheelchairInput
 @onready var _ui = $HUD/InventoryUI
 @onready var _cursor = $CursorController
 @onready var _aim = $MovementTest/Player/WeaponAim
 @onready var _firearm = $MovementTest/Player/FirearmController
 @onready var _reload_ui = $HUD/WeaponReloadUI
 @onready var _character_visual = $MovementTest/Player/CharacterVisual
+@onready var _vision = $MovementTest/Player/PlayerVision
+@onready var _world = $MovementTest
 
 
 func _ready() -> void:
+	var occluders: Array[LightOccluder2D] = []
+	for node in $MovementTest.find_children("*", "LightOccluder2D", true, false):
+		occluders.append(node)
+	_vision.bind_occluders(occluders)
+	$VisibilityFog/Fog.material.set_shader_parameter(
+		"visibility_mask", _vision.get_visibility_texture())
 	_aim.bind_equipment(_pickup.equipment)
 	_firearm.bind_equipment(_pickup.equipment)
 	_character_visual.bind_equipment(_pickup.equipment)
@@ -23,11 +31,37 @@ func _ready() -> void:
 	_firearm.shot_fired.connect($WeaponFireVFX.show_shot)
 	_firearm.shot_fired.connect(_character_visual.show_recoil)
 	_aim.aiming_changed.connect(_sync_movement_gate)
-	_ui.panel_changed.connect(_sync_input_gates)
-	_reload_ui.panel_changed.connect(_sync_input_gates)
+	_ui.panel_changed.connect(_on_inventory_panel_changed)
+	_reload_ui.panel_changed.connect(_on_reload_panel_changed)
+	$HUD/WorldDropTarget.inventory_drop_requested.connect(_drop_inventory_stack)
 	_ui.bind_inventory(_pickup.inventory, _pickup.equipment)
 	_reload_ui.bind_models(_pickup.inventory, _pickup.equipment)
 	_firearm.shot_resolved.connect(_show_shot_result)
+	_sync_input_gates()
+
+
+func _input(event: InputEvent) -> void:
+	if event is not InputEventMouseButton or not event.pressed:
+		return
+	if event.button_index != MOUSE_BUTTON_LEFT and event.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	if get_viewport().gui_is_dragging():
+		return
+	# These calls never handle or recreate the event. It continues once through
+	# GUI and _unhandled_input after the synchronous panel_changed signal.
+	_ui.close_for_outside_click(event.position)
+	_reload_ui.close_for_outside_click(event.position)
+
+
+func _on_inventory_panel_changed() -> void:
+	if _ui.is_open():
+		_reload_ui.close_panel()
+	_sync_input_gates()
+
+
+func _on_reload_panel_changed() -> void:
+	if _reload_ui.is_open():
+		_ui.close_panel()
 	_sync_input_gates()
 
 
@@ -37,7 +71,8 @@ func _sync_input_gates() -> void:
 
 
 func _sync_movement_gate() -> void:
-	_input.set_input_enabled(not _aim.is_aiming and not _ui.is_open() and not _reload_ui.is_open())
+	_wheelchair_input.set_input_enabled(
+		not _aim.is_aiming and not _ui.is_open() and not _reload_ui.is_open())
 
 
 func _show_shot_result(result: ShotResult) -> void:
@@ -48,6 +83,17 @@ func _show_shot_result(result: ShotResult) -> void:
 		$WeaponFireVFX.show_impact(result.end, result.collision_normal)
 
 
+func _drop_inventory_stack(slot_index: int, expected, screen_position: Vector2) -> void:
+	if _pickup.inventory.get_item(slot_index) != expected:
+		return
+	var world_position := get_viewport().get_canvas_transform().affine_inverse() * screen_position
+	var world_item = _world.spawn_dropped_item(expected, world_position)
+	if world_item == null:
+		return
+	if _pickup.inventory.take(slot_index, expected) == null:
+		world_item.queue_free()
+
+
 func _process(_delta: float) -> void:
 	var hovered := get_viewport().gui_get_hovered_control()
 	var available := false
@@ -56,7 +102,7 @@ func _process(_delta: float) -> void:
 	else:
 		var query := PhysicsPointQueryParameters2D.new()
 		query.position = get_global_mouse_position()
-		query.collision_mask = _input.WORLD_ITEM_COLLISION_MASK
+		query.collision_mask = _wheelchair_input.WORLD_ITEM_COLLISION_MASK
 		query.collide_with_areas = true
 		query.collide_with_bodies = false
 		var hits := get_world_2d().direct_space_state.intersect_point(query)
@@ -70,7 +116,8 @@ func _process(_delta: float) -> void:
 			# Its Area2D still receives the click and requests pickup.
 			available = false
 		else:
-			available = _input.input_enabled and (
-				_input.get_local_mouse_position().length() <= _input.interaction_radius)
+			available = _wheelchair_input.input_enabled and (
+				_wheelchair_input.get_local_mouse_position().length()
+				<= _wheelchair_input.interaction_radius)
 	_cursor.set_context(self, available,
-		_input.drag_active or get_viewport().gui_is_dragging(), _aim.is_aiming)
+		_wheelchair_input.drag_active or get_viewport().gui_is_dragging(), _aim.is_aiming)

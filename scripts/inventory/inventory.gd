@@ -52,6 +52,33 @@ func try_add(item: ItemDefinition, quantity: int = 1) -> int:
 	return quantity - remaining
 
 
+## Stores an existing runtime value. An untouched stack keeps its identity/state.
+func try_add_stack(item_stack: ItemStack) -> int:
+	if item_stack == null:
+		return 0
+	var item := item_stack.definition
+	var remaining := item_stack.quantity
+	for index in _slots.size():
+		var destination := _slots[index]
+		if destination != null and destination.definition == item:
+			var amount := mini(remaining, item.max_stack_size - destination.quantity)
+			if amount > 0:
+				_slots[index] = ItemStack.new(item, destination.quantity + amount)
+				remaining -= amount
+	for index in _slots.size():
+		if remaining == 0:
+			break
+		if _slots[index] == null:
+			if remaining == item_stack.quantity:
+				_slots[index] = item_stack
+			else:
+				_slots[index] = ItemStack.new(item, remaining)
+			remaining = 0
+	if remaining != item_stack.quantity:
+		changed.emit()
+	return item_stack.quantity - remaining
+
+
 func can_move(source: int, target: int, expected: ItemStack) -> bool:
 	if not _valid_index(source) or not _valid_index(target) or source == target:
 		return false
@@ -90,6 +117,15 @@ func exchange(index: int, expected: ItemStack, replacement: ItemStack) -> bool:
 	_slots[index] = replacement
 	changed.emit()
 	return true
+
+
+## Removes and returns the exact runtime value only when the slot still matches.
+func take(index: int, expected: ItemStack) -> ItemStack:
+	if not _valid_index(index) or expected == null or _slots[index] != expected:
+		return null
+	_slots[index] = null
+	changed.emit()
+	return expected
 
 
 func _valid_index(index: int) -> bool:
