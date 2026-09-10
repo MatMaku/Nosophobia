@@ -5,7 +5,7 @@ const ItemStack = preload("res://scripts/inventory/item_stack.gd")
 const WorldItem = preload("res://scripts/items/world_item.gd")
 
 @export_group("World item drop")
-@export var world_item_scene: PackedScene = preload("res://scenes/items/world_item.tscn")
+@export var world_item_scene: PackedScene = preload("res://scenes/prefabs/items/world_item.tscn")
 @export_range(8.0, 120.0, 1.0) var drop_distance: float = 36.0
 @export_range(8.0, 48.0, 1.0) var separation_radius: float = 26.0
 @export_range(4.0, 32.0, 1.0) var separation_step: float = 14.0

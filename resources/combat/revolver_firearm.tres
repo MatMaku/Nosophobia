@@ -8,6 +8,7 @@ script = ExtResource("1")
 compatible_ammo = ExtResource("2")
 capacity = 6
 pellet_count = 1
+damage = 25.0
 spread_degrees = 3.0
 range = 900.0
 recoil_impulse = 70.0

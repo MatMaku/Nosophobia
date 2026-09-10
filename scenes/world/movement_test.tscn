@@ -1,14 +1,15 @@
 [gd_scene format=3 uid="uid://dtve6cf170m55"]
 
-[ext_resource type="PackedScene" uid="uid://c8c2xgd86ml4e" path="res://scenes/player/player.tscn" id="1"]
+[ext_resource type="PackedScene" uid="uid://c8c2xgd86ml4e" path="res://scenes/prefabs/player/player.tscn" id="1"]
 [ext_resource type="Script" uid="uid://ru18mny0khuc" path="res://scripts/world/movement_test.gd" id="2"]
-[ext_resource type="PackedScene" uid="uid://6wmxmowbqwle" path="res://scenes/items/world_item.tscn" id="3"]
+[ext_resource type="PackedScene" uid="uid://6wmxmowbqwle" path="res://scenes/prefabs/items/world_item.tscn" id="3"]
 [ext_resource type="Resource" path="res://resources/items/test_item.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/items/revolver_ammo.tres" id="5"]
 [ext_resource type="Resource" path="res://resources/items/revolver_item.tres" id="6"]
 [ext_resource type="Resource" path="res://resources/items/shotgun_shell.tres" id="7"]
 [ext_resource type="Resource" path="res://resources/items/double_barrel_shotgun_item.tres" id="8"]
-[ext_resource type="PackedScene" uid="uid://bxhrfdpe6ethy" path="res://scenes/world/decorative_light_2d.tscn" id="9"]
+[ext_resource type="PackedScene" uid="uid://bxhrfdpe6ethy" path="res://scenes/prefabs/lighting/decorative_light_2d.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/enemies/enemy_base.tscn" id="10"]
 
 [sub_resource type="RectangleShape2D" id="Box"]
 size = Vector2(100, 100)
@@ -215,6 +216,21 @@ position = Vector2(260, 175)
 [node name="CoolLamp" parent="." unique_id=1978840213 instance=ExtResource("9")]
 position = Vector2(960, 175)
 
+[node name="EnemyLowHealth" parent="." unique_id=1955355927 instance=ExtResource("10")]
+position = Vector2(335, 645)
+
+[node name="HealthComponent" parent="EnemyLowHealth" index="2"]
+max_health = 50.0
+
+[node name="EnemyHighHealth" parent="." unique_id=58400572 instance=ExtResource("10")]
+position = Vector2(445, 350)
+
+[node name="HealthComponent" parent="EnemyHighHealth" index="2"]
+max_health = 200.0
+
+[node name="EnemyBase" parent="." unique_id=298714688 instance=ExtResource("10")]
+position = Vector2(149, 451)
+
 [connection signal="pickup_requested" from="NearItem" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="SecondItem" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="FarItem" to="Player/PickupInteractor" method="request_pickup"]
@@ -226,3 +242,7 @@ position = Vector2(960, 175)
 [connection signal="pickup_requested" from="VisionPartialWall" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="VisionRoundEdge" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="VisionBoundary" to="Player/PickupInteractor" method="request_pickup"]
+
+[editable path="EnemyLowHealth"]
+[editable path="EnemyHighHealth"]
+[editable path="EnemyBase"]

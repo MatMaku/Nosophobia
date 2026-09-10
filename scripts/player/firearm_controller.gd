@@ -74,6 +74,9 @@ func _physics_process(delta: float) -> void:
 		var hit := get_world_2d().direct_space_state.intersect_ray(query)
 		if not hit.is_empty():
 			end = hit.position
+			var receiver: Object = hit.collider
+			if is_instance_valid(receiver) and receiver.has_method("take_damage"):
+				receiver.call("take_damage", config.damage)
 		shot_resolved.emit(ShotResult.new(start, end, hit))
 	body.apply_external_impulse(-direction * config.recoil_impulse)
 	shot_fired.emit(start, direction)

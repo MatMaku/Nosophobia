@@ -12,13 +12,14 @@ Los cambios internos pequeños que no alteran la arquitectura no requieren actua
 ```text
 scenes/
   app/main.tscn
-  player/player.tscn
+  prefabs/player/player.tscn
+  prefabs/enemies/enemy_base.tscn
   player/character_visual.tscn
   player/player_vision.tscn
   world/movement_test.tscn
-  world/decorative_light_2d.tscn
+  prefabs/lighting/decorative_light_2d.tscn
   world/visibility_fog.tscn
-  items/world_item.tscn
+  prefabs/items/world_item.tscn
   ui/inventory_ui.tscn
   ui/inventory_slot.tscn
   ui/item_drag_preview.tscn
@@ -27,6 +28,8 @@ scripts/
   app/main.gd
   player/{wheelchair_body, wheelchair_input, wheelchair_debug, pickup_interactor}.gd
   player/{character_visual, player_vision}.gd
+  enemies/enemy_base.gd
+  combat/{health_component, firearm_definition}.gd
   world/{movement_test, decorative_light_2d}.gd
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
@@ -321,7 +324,8 @@ Los valores del Inspector de WeaponAim están en grados y Hz: drift sano/crític
 0.4/2.0 a 0.35 Hz; tremor 0.06/0.25 a 3 Hz; blend inicial 0.15 s.
 set_health_ratio(value) acepta 0..1 y parte de 1.0. Solo escala amplitudes: la Curve
 opcional health_sway_curve recibe 1 - health_ratio; sin Curve usa lesión al cubo.
-Este es el punto para conectar salud posteriormente; no existe un Health nuevo.
+Este es el punto para conectar salud del Player posteriormente; HealthComponent
+existe actualmente solo en EnemyBase, sin conexión al sway del jugador.
 
 RMB empieza desde forward, con sway cero. Soltar RMB, bloquear input o cambiar equipo
 reinicia los ángulos y cancela/restaura el recoil visual. El recoil sigue siendo un
@@ -341,3 +345,46 @@ esa misma máscara. PlayerVision renderiza su propia máscara de visibilidad en 
 SubViewport separado usando copias de nodos occluder que comparten los mismos recursos
 OccluderPolygon2D. VisibilityFog compone esa máscara sobre el mundo antes de Grain y HUD.
 Por ello una lámpara nunca revela zonas que PlayerVision mantiene ocultas.
+
+## EnemyBase and damage
+
+EnemyBase es un CharacterBody2D quieto: posee Visual (Sprite2D), CollisionShape2D,
+HealthComponent y un Label de HP provisional desactivable con show_health_debug.
+HealthComponent posee max_health y current_health por instancia; inicia lleno,
+limita el daño a 0..max_health y emite damaged y died (una sola vez).
+EnemyBase delega take_damage y escucha died para queue_free. No contiene IA.
+Futuros enemigos pueden heredar esta escena y añadir comportamiento mediante
+componentes/controladores concretos, sin introducirlo en la base.
+
+```text
+FirearmController -> mismo hit del raycast -> collider.take_damage(damage)
+                                              -> EnemyBase -> HealthComponent
+                                                               | damaged -> HP debug
+                                                               ` died -> queue_free
+```
+
+El receptor se reconoce por take_damage, no por la clase EnemyBase. Cada pellet
+aplica FirearmDefinition.damage al collider real; ShotResult conserva ese mismo
+hit para tracer/impact. Valores iniciales: revólver 25 por bala; escopeta 10 por
+pellet (4 pellets existentes). No cambia aim, spread ni recoil.
+EnemyBase usa capa/máscara física 1 como Player/mundo y máscara visual 2 para
+recibir luz decorativa. VisibilityFog sigue recortando su presentación por píxel;
+el enemigo no modifica ni amplía PlayerVision.
+
+## Level prefabs
+
+Un prefab es una escena canónica reutilizable y configurable desde Inspector.
+Están reunidos en scenes/prefabs/: player/player.tscn, enemies/enemy_base.tscn,
+items/world_item.tscn y lighting/decorative_light_2d.tscn. No son copias ni wrappers.
+Las poses y otras escenas de soporte mantienen sus ubicaciones existentes.
+
+Arrastrar una escena al nivel. Para editar hijos de una instancia activar
+**Editable Children / Hijos editables**: HealthComponent.max_health controla HP;
+Visual.texture/modulate el placeholder; PointLight2D expone color, energy,
+texture_scale y sombras nativos. La raíz de la luz expone edge_hardness y noise_*.
+Estas propiedades son por nodo/instancia; hacer recursos compartidos únicos antes
+de modificar, por ejemplo, la geometría de una CollisionShape2D.
+WorldItem expone definition y quantity en la raíz. Conectar pickup_requested al
+PickupInteractor del Player desde la composición del nivel, como MovementTest.
+Player mantiene las conexiones externas de Main; colocarlo no reemplaza esa
+composición de HUD, Equipment, apuntado y fog. No hay búsquedas globales nuevas.
