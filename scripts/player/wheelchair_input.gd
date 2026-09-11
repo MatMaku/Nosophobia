@@ -2,10 +2,14 @@ extends Node2D
 ## Tracks mouse motion in chair-local coordinates; owns no physics rules.
 
 const WORLD_ITEM_COLLISION_MASK: int = 1 << 1
+const WorldItem = preload("res://scripts/items/world_item.gd")
 
 @export_range(1.0, 500.0, 1.0) var interaction_radius: float = 110.0
 
 @onready var _pickup_interactor = $"../PickupInteractor"
+
+## Composition may include other reachable interactions using the same picking layer.
+var world_interaction_available: Callable
 
 var drag_active: bool = false
 var input_enabled: bool = true
@@ -48,9 +52,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			query.collision_mask = WORLD_ITEM_COLLISION_MASK
 			query.collide_with_areas = true
 			query.collide_with_bodies = false
-			var hits := get_world_2d().direct_space_state.intersect_point(query, 1)
+			var hits := get_world_2d().direct_space_state.intersect_point(query)
 			for hit in hits:
-				if _pickup_interactor.can_pickup(hit.collider):
+				var available: bool = world_interaction_available.call(hit.collider) \
+					if world_interaction_available.is_valid() else (
+						hit.collider is WorldItem
+						and _pickup_interactor.can_pickup(hit.collider))
+				if available:
 					return
 			# Test the position at press time, even if several events arrived together.
 			mouse_local_position = make_input_local(event).position

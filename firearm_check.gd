@@ -61,6 +61,7 @@ func drag_to(source: Control, target: Vector2) -> void:
 
 
 func _run() -> void:
+	seed(12345)
 	var revolver: ItemDefinition = load("res://resources/items/revolver_item.tres")
 	var shotgun: ItemDefinition = load("res://resources/items/double_barrel_shotgun_item.tres")
 	var ammo := revolver.firearm.compatible_ammo
@@ -177,8 +178,8 @@ func _run() -> void:
 	check(shots == 1 and segments.size() == 1 and state.get_loaded_count() == 2,
 		"revolver trigger consumes one and casts one ray")
 	check(player.linear_velocity.y > 0.1, "revolver recoil pushes chair backward")
-	check(segments[0].y >= 319.0 and segments[0].y <= 321.0,
-		"front obstacle clips hitscan endpoint")
+	check(segments[0].y >= 385.0 and segments[0].y <= 387.0,
+		"closed door clips hitscan endpoint")
 	await ticks(30)
 	check(shots == 1, "holding LMB is not automatic fire")
 	await button(center, MOUSE_BUTTON_LEFT, false)

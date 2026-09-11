@@ -1,8 +1,11 @@
 extends Node2D
-## Draws the test arena directly from its static collision shapes.
+## Playground composition references and runtime inventory drops; no demo generation.
 
 const ItemStack = preload("res://scripts/inventory/item_stack.gd")
 const WorldItem = preload("res://scripts/items/world_item.gd")
+const Door = preload("res://scripts/world/door_2d.gd")
+
+@export var doors: Array[Door] = []
 
 @export_group("World item drop")
 @export var world_item_scene: PackedScene = preload("res://scenes/prefabs/items/world_item.tscn")
@@ -12,21 +15,6 @@ const WorldItem = preload("res://scripts/items/world_item.gd")
 
 @onready var _player: RigidBody2D = $Player
 @onready var _pickup_interactor: Node2D = $Player/PickupInteractor
-
-
-func _draw() -> void:
-	draw_rect(Rect2(0, 0, 1152, 720), Color(0.055, 0.07, 0.09))
-	for child in get_children():
-		if child is not StaticBody2D:
-			continue
-		var collider := child.get_node("CollisionShape2D") as CollisionShape2D
-		var center: Vector2 = child.position + collider.position
-		var color := Color(0.3, 0.36, 0.42)
-		if collider.shape is RectangleShape2D:
-			var size: Vector2 = collider.shape.size
-			draw_rect(Rect2(center - size / 2.0, size), color)
-		elif collider.shape is CircleShape2D:
-			draw_circle(center, collider.shape.radius, color)
 
 
 func spawn_dropped_item(item_stack: ItemStack, toward_world_position: Vector2) -> WorldItem:

@@ -31,8 +31,11 @@ func bind_occluders(sources: Array[LightOccluder2D]) -> void:
 	_sources.assign(sources)
 	for source in _sources:
 		var copy := LightOccluder2D.new()
-		# Share the resource: editing the world polygon also edits visibility geometry.
-		copy.occluder = source.occluder
+		# Thick walls use a private far-edge polygon; zero-width occluders stay shared.
+		if _get_occlusion_width(source) > 0.0:
+			copy.occluder = OccluderPolygon2D.new()
+		else:
+			copy.occluder = source.occluder
 		copy.occluder_light_mask = VISIBILITY_OCCLUSION
 		_occluder_root.add_child(copy)
 		_copies.append(copy)
@@ -63,4 +66,49 @@ func _sync_mask() -> void:
 			continue
 		copy.visible = (source.occluder_light_mask & VISIBILITY_OCCLUSION) != 0
 		copy.global_transform = source.global_transform
-		copy.occluder = source.occluder
+		var width := _get_occlusion_width(source)
+		if width > 0.0:
+			if copy.occluder == source.occluder:
+				copy.occluder = OccluderPolygon2D.new()
+			_sync_far_edge(source, copy, width)
+		else:
+			copy.occluder = source.occluder
+
+
+func _get_occlusion_width(source: LightOccluder2D) -> float:
+	return maxf(float(source.get_meta("vision_occlusion_width", 0.0)), 0.0)
+
+
+func _sync_far_edge(source: LightOccluder2D, copy: LightOccluder2D, width: float) -> void:
+	var authored := source.occluder.polygon
+	if authored.size() < 2:
+		copy.occluder.polygon = authored
+		return
+	var viewer := source.to_local(global_position)
+	var normals: Array[Vector2] = []
+	var segment_count := authored.size() if source.occluder.closed else authored.size() - 1
+	for index in segment_count:
+		var next := (index + 1) % authored.size()
+		var midpoint := (authored[index] + authored[next]) * 0.5
+		var normal := (authored[next] - authored[index]).orthogonal().normalized()
+		if normal.dot(midpoint - viewer) < 0.0:
+			normal = -normal
+		normals.append(normal)
+	var far_edge := PackedVector2Array()
+	for index in authored.size():
+		var normal: Vector2
+		if not source.occluder.closed and index == 0:
+			normal = normals[0]
+		elif not source.occluder.closed and index == authored.size() - 1:
+			normal = normals[-1]
+		else:
+			var previous := normals[(index - 1 + normals.size()) % normals.size()]
+			var following := normals[index % normals.size()]
+			var joined := previous + following
+			normal = following if joined.is_zero_approx() else joined.normalized()
+			var projection := maxf(absf(normal.dot(following)), 0.25)
+			normal /= projection
+		far_edge.append(authored[index] + normal * width * 0.5)
+	copy.occluder.polygon = far_edge
+	copy.occluder.closed = source.occluder.closed
+	copy.occluder.cull_mode = OccluderPolygon2D.CULL_DISABLED

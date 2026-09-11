@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/door_2d.gd" id="1"]
+
+[sub_resource type="Gradient" id="Color"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="Placeholder"]
+gradient = SubResource("Color")
+width = 96
+height = 12
+
+[sub_resource type="RectangleShape2D" id="LeafShape"]
+resource_local_to_scene = true
+size = Vector2(96, 12)
+
+[sub_resource type="RectangleShape2D" id="ClickShape"]
+resource_local_to_scene = true
+size = Vector2(96, 24)
+
+[sub_resource type="OccluderPolygon2D" id="LeafOccluder"]
+resource_local_to_scene = true
+polygon = PackedVector2Array(-48, 0, 48, 0)
+closed = false
+
+[node name="Door2D" type="Node2D"]
+script = ExtResource("1")
+
+[node name="HingeAnchor" type="StaticBody2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+
+[node name="DoorBody" type="RigidBody2D" parent="."]
+position = Vector2(48, 0)
+mass = 0.8
+gravity_scale = 0.0
+freeze = true
+angular_damp_mode = 1
+angular_damp = 3.0
+continuous_cd = 2
+
+[node name="Visual" type="Sprite2D" parent="DoorBody"]
+light_mask = 2
+modulate = Color(0.62, 0.4, 0.23, 1)
+texture = SubResource("Placeholder")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorBody"]
+shape = SubResource("LeafShape")
+
+[node name="InteractionArea" type="Area2D" parent="DoorBody"]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DoorBody/InteractionArea"]
+shape = SubResource("ClickShape")
+
+[node name="LightOccluder" type="LightOccluder2D" parent="DoorBody"]
+light_mask = 2
+occluder_light_mask = 3
+occluder = SubResource("LeafOccluder")
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+node_a = NodePath("../HingeAnchor")
+node_b = NodePath("../DoorBody")
+angular_limit_enabled = true
+angular_limit_lower = -1.7453293
+angular_limit_upper = 0.0872665

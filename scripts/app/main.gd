@@ -2,6 +2,7 @@ extends Node2D
 ## Composition translates concrete gameplay into semantic cursor context.
 
 const ShotResult = preload("res://scripts/combat/shot_result.gd")
+const WorldItem = preload("res://scripts/items/world_item.gd")
 
 @export var tracer_scene: PackedScene
 
@@ -19,6 +20,9 @@ const ShotResult = preload("res://scripts/combat/shot_result.gd")
 
 
 func _ready() -> void:
+	_wheelchair_input.world_interaction_available = _can_world_interact
+	for door in _world.doors:
+		door.unlock_requested.connect(_request_door_unlock)
 	var occluders: Array[LightOccluder2D] = []
 	for node in $MovementTest.find_children("*", "LightOccluder2D", true, false):
 		occluders.append(node)
@@ -116,11 +120,15 @@ func _process(_delta: float) -> void:
 		query.collide_with_bodies = false
 		var hits := get_world_2d().direct_space_state.intersect_point(query)
 		var reachable_item := false
+		var reachable_door := false
 		for hit in hits:
-			if _pickup.can_pickup(hit.collider):
+			if _reachable_door(hit.collider) != null:
+				reachable_door = true
+			if hit.collider is WorldItem and _pickup.can_pickup(hit.collider):
 				reachable_item = true
-				break
-		if reachable_item:
+		if reachable_door:
+			available = true
+		elif reachable_item:
 			# A reachable item intentionally keeps the default pointing hand.
 			# Its Area2D still receives the click and requests pickup.
 			available = false
@@ -130,3 +138,19 @@ func _process(_delta: float) -> void:
 				<= _wheelchair_input.interaction_radius)
 	_cursor.set_context(self, available,
 		_wheelchair_input.drag_active or get_viewport().gui_is_dragging(), _aim.is_aiming)
+
+
+func _reachable_door(area: Object) -> Node2D:
+	for door in _world.doors:
+		if door.interaction_area == area and door.can_unlock_from(_pickup.global_position):
+			return door
+	return null
+
+
+func _can_world_interact(area: Object) -> bool:
+	return (area is WorldItem and _pickup.can_pickup(area)) or _reachable_door(area) != null
+
+
+func _request_door_unlock(door: Node2D) -> void:
+	if door.can_unlock_from(_pickup.global_position):
+		door.unlock()

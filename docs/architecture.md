@@ -18,6 +18,7 @@ scenes/
   player/player_vision.tscn
   world/movement_test.tscn
   prefabs/lighting/decorative_light_2d.tscn
+  prefabs/world/{level_boundary_2d, door_2d, window_2d}.tscn
   world/visibility_fog.tscn
   prefabs/items/world_item.tscn
   ui/inventory_ui.tscn
@@ -30,7 +31,7 @@ scripts/
   player/{character_visual, player_vision}.gd
   enemies/enemy_base.gd
   combat/{health_component, firearm_definition}.gd
-  world/{movement_test, decorative_light_2d}.gd
+  world/{movement_test, decorative_light_2d, level_boundary_2d, door_2d}.gd
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
   ui/{cursor_controller, inventory_ui, inventory_slot, world_drop_target}.gd
@@ -44,8 +45,9 @@ docs/architecture.md
 - **Main** compone MovementTest, CursorController, fog/VFX y un CanvasLayer HUD con
   InventoryUI, WeaponReloadUI y WorldDropTarget. Inyecta los modelos y coordina
   handoff de input y transferencias de drop sin poseer reglas de inventario.
-- **MovementTest** posee Player, obstáculos, bordes, luces y WorldItems de prueba.
-  Conecta pickup_requested y crea WorldItems soltados cerca del Player.
+- **MovementTest** es el level playground actual. Su `.tscn` posee explícitamente
+  Player, muros de puntos, Door2D, Window2D, luces, enemigos y WorldItems.
+  Conecta pickup_requested y solo crea WorldItems que el jugador tira en runtime.
 - **Player** tiene un RigidBody2D raíz, CharacterVisual, CollisionShape2D, WheelchairInput,
   Camera2D, Debug y PickupInteractor. La cámara sigue su posición sin rotar.
   Debug recibe una referencia explícita a WheelchairInput.
@@ -87,7 +89,10 @@ docs/architecture.md
 | inventory_slot.gd | Mostrar stack e invocar APIs nativas de drag/drop. | Usar o poseer items. |
 | world_drop_target.gd | Solicitar un drop al mundo desde un drag válido. | Instanciar WorldItem o modificar Inventory. |
 | decorative_light_2d.gd | Generar máscara irregular y variación temporal sutil. | Visibilidad del jugador o gameplay. |
-| movement_test.gd | Dibujar la pista a partir de sus colisiones estáticas. | Reglas de inventario. |
+| level_boundary_2d.gd | Sincronizar puntos de Line2D hacia colisión y oclusión. | Generar contenido del nivel. |
+| door_2d.gd | Configurar hoja/bisagra y liberar el latch ante solicitud válida. | Abrir automáticamente o buscar al Player. |
+| movement_test.gd | Referencias de composición y spawn de drops runtime. | Generar la demo o dibujar muros. |
+| player_vision.gd | Construir la máscara de visión y desplazar oclusión gruesa a la cara lejana. | Iluminación decorativa o colisiones. |
 
 ## Data models
 
@@ -342,8 +347,9 @@ editándose en el PointLight2D hijo.
 
 Las luces decorativas iluminan CanvasItems en la máscara visual 2 y sus occluders usan
 esa misma máscara. PlayerVision renderiza su propia máscara de visibilidad en un
-SubViewport separado usando copias de nodos occluder que comparten los mismos recursos
-OccluderPolygon2D. VisibilityFog compone esa máscara sobre el mundo antes de Grain y HUD.
+SubViewport separado usando copias de nodos occluder. Las geometrías sin grosor
+comparten su Resource; muros y puertas poseen una copia de visión derivada.
+VisibilityFog compone esa máscara sobre el mundo antes de Grain y HUD.
 Por ello una lámpara nunca revela zonas que PlayerVision mantiene ocultas.
 
 ## EnemyBase and damage
@@ -375,7 +381,8 @@ el enemigo no modifica ni amplía PlayerVision.
 
 Un prefab es una escena canónica reutilizable y configurable desde Inspector.
 Están reunidos en scenes/prefabs/: player/player.tscn, enemies/enemy_base.tscn,
-items/world_item.tscn y lighting/decorative_light_2d.tscn. No son copias ni wrappers.
+items/world_item.tscn, lighting/decorative_light_2d.tscn y, bajo world/,
+level_boundary_2d.tscn, door_2d.tscn y window_2d.tscn. No son copias ni wrappers.
 Las poses y otras escenas de soporte mantienen sus ubicaciones existentes.
 
 Arrastrar una escena al nivel. Para editar hijos de una instancia activar
@@ -388,3 +395,55 @@ WorldItem expone definition y quantity en la raíz. Conectar pickup_requested al
 PickupInteractor del Player desde la composición del nivel, como MovementTest.
 Player mantiene las conexiones externas de Main; colocarlo no reemplaza esa
 composición de HUD, Equipment, apuntado y fog. No hay búsquedas globales nuevas.
+
+### LevelBoundary2D
+
+Prefab: scenes/prefabs/world/level_boundary_2d.tscn. La raíz es un Line2D:
+seleccionarla y usar los handles nativos de puntos en la barra del editor 2D.
+No hay que activar Hijos editables ni editar las geometrías derivadas.
+
+```text
+LevelBoundary2D.points (única geometría editable)
+    ├── Line2D raíz: visual de pared
+    ├── Collision/Polygon: ConcavePolygonShape2D de segmentos, capa/máscara física 1
+    └── LightOccluder: máscara 3 (PlayerVision + luz decorativa)
+```
+
+El script @tool sincroniza al redibujar por una edición de puntos; al iniciar
+runtime construye una vez, sin _process. Cada instancia posee su propio recurso
+occluder. Main descubre el LightOccluder al componer el nivel y PlayerVision deriva
+su borde lejano para la máscara de fog.
+Width, Default Color, Texture y Texture Mode son propiedades nativas de Line2D;
+Tile y Texture Repeat están configurados para textura repetible. Collision Enabled
+y Occlusion Enabled permiten desactivar cada salida. Width es solo visual: la
+colisión sigue el eje del perímetro, no su grosor. Closed cierra último→primero;
+desactivarlo crea un tramo abierto desde dos puntos. Admite concavidad y no genera
+geometría dinámica durante gameplay. Los huecos se construyen terminando un tramo,
+colocando Door2D/Window2D y continuando con otro tramo.
+
+PlayerVision conserva el occluder original para DecorativeLight2D, pero las paredes
+con `vision_occlusion_width` generan en su SubViewport una copia sobre la cara opuesta
+al jugador. LevelBoundary2D toma ese ancho de Line2D.width y Door2D del grosor de la
+hoja. Así el muro/puerta visible queda del lado iluminado y el fog comienza detrás,
+en vez de cortar el visual desde su línea central. Esta derivación solo pertenece a
+la máscara visual: colisión, disparos y sombras decorativas no cambian.
+
+### Door2D, Window2D and playground
+
+Door2D es un prefab físico con HingeAnchor, DoorBody RigidBody2D, área clickeable,
+LightOccluder y PinJoint2D. Main valida distancia mediante la lista explícita
+MovementTest.doors: un click alcanzable libera el latch y coloca la hoja en
+unlatched_angle_degrees; desde allí solo fuerzas/colisiones mueven la puerta.
+La hoja bloquea cuerpos, balas, PlayerVision y luz según su transform real.
+Inspector expone locked_initially, interaction_distance, unlatched angle,
+min/max angle y leaf_size; masa y angular_damp son propiedades nativas de DoorBody,
+y la textura es la propiedad nativa de Visual.
+
+Window2D es un StaticBody2D sin script ni LightOccluder: Visual y CollisionShape2D
+son editables como hijos. Bloquea silla y raycasts en capa 1, pero visión y luz
+atraviesan el vidrio. No existe rotura todavía.
+
+scenes/world/movement_test.tscn es el único level playground y la escena que Main
+instancia. Muros, puerta, ventana, tres luces configuradas por instancia, Player,
+enemigos e items están guardados como nodos/instancias en ese `.tscn`; ningún script
+crea contenido permanente de la demo.

@@ -10,40 +10,20 @@
 [ext_resource type="Resource" path="res://resources/items/double_barrel_shotgun_item.tres" id="8"]
 [ext_resource type="PackedScene" uid="uid://bxhrfdpe6ethy" path="res://scenes/prefabs/lighting/decorative_light_2d.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/enemies/enemy_base.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/world/level_boundary_2d.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/world/door_2d.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/world/window_2d.tscn" id="13"]
 
-[sub_resource type="RectangleShape2D" id="Box"]
-size = Vector2(100, 100)
-
-[sub_resource type="OccluderPolygon2D" id="BoxOccluder"]
-polygon = PackedVector2Array(-50, -50, 50, -50, 50, 50, -50, 50)
-
-[sub_resource type="RectangleShape2D" id="Bar"]
-size = Vector2(180, 50)
-
-[sub_resource type="OccluderPolygon2D" id="BarOccluder"]
-polygon = PackedVector2Array(-90, -25, 90, -25, 90, 25, -90, 25)
-
-[sub_resource type="CircleShape2D" id="Circle"]
-radius = 45.0
-
-[sub_resource type="OccluderPolygon2D" id="RoundOccluder"]
-polygon = PackedVector2Array(45, 0, 42.798, 13.906, 36.406, 26.45, 26.45, 36.406, 13.906, 42.798, 0, 45, -13.906, 42.798, -26.45, 36.406, -36.406, 26.45, -42.798, 13.906, -45, 0, -42.798, -13.906, -36.406, -26.45, -26.45, -36.406, -13.906, -42.798, 0, -45, 13.906, -42.798, 26.45, -36.406, 36.406, -26.45, 42.798, -13.906)
-
-[sub_resource type="RectangleShape2D" id="HorizontalWall"]
-size = Vector2(1152, 24)
-
-[sub_resource type="OccluderPolygon2D" id="HorizontalOccluder"]
-polygon = PackedVector2Array(-576, -12, 576, -12, 576, 12, -576, 12)
-
-[sub_resource type="RectangleShape2D" id="VerticalWall"]
-size = Vector2(24, 720)
-
-[sub_resource type="OccluderPolygon2D" id="VerticalOccluder"]
-polygon = PackedVector2Array(-12, -360, 12, -360, 12, 360, -12, 360)
-
-[node name="MovementTest" type="Node2D" unique_id=1179780724]
+[node name="MovementTest" type="Node2D" unique_id=1179780724 node_paths=PackedStringArray("doors")]
 light_mask = 2
 script = ExtResource("2")
+doors = Array[NodePath]([NodePath("Environment/Door")])
+
+[node name="Floor" type="Polygon2D" parent="."]
+z_index = -10
+light_mask = 2
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 720, 0, 720)
+color = Color(0.055, 0.07, 0.09, 1)
 
 [node name="AmbientDarkness" type="CanvasModulate" parent="." unique_id=1990364449]
 color = Color(0.65, 0.65, 0.7, 1)
@@ -51,115 +31,61 @@ color = Color(0.65, 0.65, 0.7, 1)
 [node name="Player" parent="." unique_id=1778468229 instance=ExtResource("1")]
 position = Vector2(260, 540)
 
-[node name="FrontBox" type="StaticBody2D" parent="." unique_id=989060940]
-position = Vector2(260, 270)
+[node name="Environment" type="Node2D" parent="."]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="FrontBox" unique_id=486728409]
-shape = SubResource("Box")
+[node name="Boundary" parent="Environment" instance=ExtResource("11")]
+points = PackedVector2Array(24, 24, 1128, 24, 1128, 696, 24, 696)
 
-[node name="LightOccluder2D" type="LightOccluder2D" parent="FrontBox" unique_id=1445773613]
+[node name="DoorWallLeft" parent="Environment" instance=ExtResource("11")]
+points = PackedVector2Array(24, 380, 260, 380)
+closed = false
+
+[node name="Door" parent="Environment" instance=ExtResource("12")]
+position = Vector2(260, 380)
+
+[node name="DoorWallRight" parent="Environment" instance=ExtResource("11")]
+points = PackedVector2Array(356, 380, 456, 380)
+closed = false
+
+[node name="Window" parent="Environment" instance=ExtResource("13")]
+position = Vector2(504, 380)
+
+[node name="WindowWallRight" parent="Environment" instance=ExtResource("11")]
+points = PackedVector2Array(552, 380, 1128, 380)
+closed = false
+
+[node name="IrregularWall" parent="Environment" instance=ExtResource("11")]
+position = Vector2(900, 180)
+scale = Vector2(0.953125, 0.9204546)
+points = PackedVector2Array(-240, -160, 240, -160, 240, 160, -206.6885, 192.2963, -191.99997, 36.938263, -182.55734, -90.17284)
+
+[node name="Corner" parent="Environment" instance=ExtResource("11")]
+points = PackedVector2Array(800, 540, 800, 640, 1020, 640)
+closed = false
+
+[node name="ItemsLabel" type="Label" parent="Environment"]
 light_mask = 2
-occluder = SubResource("BoxOccluder")
-occluder_light_mask = 3
+offset_left = 140.0
+offset_top = 650.0
+text = "ITEMS / EQUIPAR / RECARGAR"
+theme_override_font_sizes/font_size = 12
+mouse_filter = 2
 
-[node name="PassageLeft" type="StaticBody2D" parent="." unique_id=1695398519]
-position = Vector2(550, 450)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PassageLeft" unique_id=991390452]
-shape = SubResource("Box")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="PassageLeft" unique_id=1186630712]
+[node name="DoorLabel" type="Label" parent="Environment"]
 light_mask = 2
-occluder = SubResource("BoxOccluder")
-occluder_light_mask = 3
+offset_left = 265.0
+offset_top = 402.0
+text = "PUERTA: CLICK + EMPUJAR"
+theme_override_font_sizes/font_size = 10
+mouse_filter = 2
 
-[node name="PassageRight" type="StaticBody2D" parent="." unique_id=2077515172]
-position = Vector2(730, 450)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PassageRight" unique_id=744853930]
-shape = SubResource("Box")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="PassageRight" unique_id=1079606124]
+[node name="WindowLabel" type="Label" parent="Environment"]
 light_mask = 2
-occluder = SubResource("BoxOccluder")
-occluder_light_mask = 3
-
-[node name="UpperBar" type="StaticBody2D" parent="." unique_id=376382862]
-position = Vector2(590, 140)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="UpperBar" unique_id=2105104794]
-shape = SubResource("Bar")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="UpperBar" unique_id=1479851859]
-light_mask = 2
-occluder = SubResource("BarOccluder")
-occluder_light_mask = 3
-
-[node name="RoundCorner" type="StaticBody2D" parent="." unique_id=730205362]
-position = Vector2(940, 250)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoundCorner" unique_id=1712184683]
-shape = SubResource("Circle")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="RoundCorner" unique_id=58801107]
-light_mask = 2
-occluder = SubResource("RoundOccluder")
-occluder_light_mask = 3
-
-[node name="RoundLower" type="StaticBody2D" parent="." unique_id=1197413819]
-position = Vector2(930, 580)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="RoundLower" unique_id=2109855959]
-shape = SubResource("Circle")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="RoundLower" unique_id=1920817945]
-light_mask = 2
-occluder = SubResource("RoundOccluder")
-occluder_light_mask = 3
-
-[node name="Top" type="StaticBody2D" parent="." unique_id=539180781]
-position = Vector2(576, 12)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Top" unique_id=349437227]
-shape = SubResource("HorizontalWall")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="Top" unique_id=1190813268]
-light_mask = 2
-occluder = SubResource("HorizontalOccluder")
-occluder_light_mask = 3
-
-[node name="Bottom" type="StaticBody2D" parent="." unique_id=589423542]
-position = Vector2(576, 708)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Bottom" unique_id=1755574090]
-shape = SubResource("HorizontalWall")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="Bottom" unique_id=692007315]
-light_mask = 2
-occluder = SubResource("HorizontalOccluder")
-occluder_light_mask = 3
-
-[node name="Left" type="StaticBody2D" parent="." unique_id=1072037010]
-position = Vector2(12, 360)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Left" unique_id=287869230]
-shape = SubResource("VerticalWall")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="Left" unique_id=651468548]
-light_mask = 2
-occluder = SubResource("VerticalOccluder")
-occluder_light_mask = 3
-
-[node name="Right" type="StaticBody2D" parent="." unique_id=440557566]
-position = Vector2(1140, 360)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Right" unique_id=1919504100]
-shape = SubResource("VerticalWall")
-
-[node name="LightOccluder2D" type="LightOccluder2D" parent="Right" unique_id=1449012129]
-light_mask = 2
-occluder = SubResource("VerticalOccluder")
-occluder_light_mask = 3
+offset_left = 460.0
+offset_top = 402.0
+text = "VENTANA: VER, NO PASAR"
+theme_override_font_sizes/font_size = 10
+mouse_filter = 2
 
 [node name="NearItem" parent="." unique_id=866608588 instance=ExtResource("3")]
 position = Vector2(320, 540)
@@ -196,7 +122,7 @@ position = Vector2(260, 175)
 definition = ExtResource("4")
 
 [node name="VisionPartialWall" parent="." unique_id=471642582 instance=ExtResource("3")]
-position = Vector2(368, 195)
+position = Vector2(504, 335)
 definition = ExtResource("4")
 
 [node name="VisionRoundEdge" parent="." unique_id=1771990727 instance=ExtResource("3")]
@@ -210,11 +136,25 @@ definition = ExtResource("4")
 [node name="WarmLamp" parent="." unique_id=805576506 instance=ExtResource("9")]
 position = Vector2(320, 565)
 
+[node name="PointLight2D" parent="WarmLamp" index="0"]
+color = Color(1, 0.8, 0.5, 1)
+energy = 1.2
+texture_scale = 1.5
+
 [node name="HiddenLamp" parent="." unique_id=261051534 instance=ExtResource("9")]
 position = Vector2(260, 175)
 
+[node name="PointLight2D" parent="HiddenLamp" index="0"]
+color = Color(1, 0.35, 0.25, 1)
+energy = 0.5
+
 [node name="CoolLamp" parent="." unique_id=1978840213 instance=ExtResource("9")]
-position = Vector2(960, 175)
+position = Vector2(504, 330)
+
+[node name="PointLight2D" parent="CoolLamp" index="0"]
+color = Color(0.4, 0.65, 1, 1)
+energy = 1.8
+texture_scale = 1.5
 
 [node name="EnemyLowHealth" parent="." unique_id=1955355927 instance=ExtResource("10")]
 position = Vector2(335, 645)
@@ -246,3 +186,7 @@ position = Vector2(149, 451)
 [editable path="EnemyLowHealth"]
 [editable path="EnemyHighHealth"]
 [editable path="EnemyBase"]
+
+[editable path="WarmLamp"]
+[editable path="HiddenLamp"]
+[editable path="CoolLamp"]
