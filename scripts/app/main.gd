@@ -17,12 +17,15 @@ const WorldItem = preload("res://scripts/items/world_item.gd")
 @onready var _vision = $MovementTest/Player/PlayerVision
 @onready var _world = $MovementTest
 @onready var _camera = $MovementTest/Player/Camera2D
+@onready var _world_drop_target = $HUD/WorldDropTarget
+
+var _pending_key_door: WeakRef
 
 
 func _ready() -> void:
 	_wheelchair_input.world_interaction_available = _can_world_interact
 	for door in _world.doors:
-		door.unlock_requested.connect(_request_door_unlock)
+		_bind_door(door)
 	var occluders: Array[LightOccluder2D] = []
 	for node in $MovementTest.find_children("*", "LightOccluder2D", true, false):
 		occluders.append(node)
@@ -37,6 +40,7 @@ func _ready() -> void:
 	_firearm.shot_fired.connect(_character_visual.show_recoil)
 	_aim.aiming_changed.connect(_sync_movement_gate)
 	_ui.panel_changed.connect(_on_inventory_panel_changed)
+	_ui.item_selected.connect(_on_inventory_item_selected)
 	_reload_ui.panel_changed.connect(_on_reload_panel_changed)
 	$HUD/WorldDropTarget.inventory_drop_requested.connect(_drop_inventory_stack)
 	_ui.bind_inventory(_pickup.inventory, _pickup.equipment)
@@ -61,6 +65,8 @@ func _input(event: InputEvent) -> void:
 func _on_inventory_panel_changed() -> void:
 	if _ui.is_open():
 		_reload_ui.close_panel()
+	else:
+		_pending_key_door = null
 	_sync_input_gates()
 
 
@@ -110,7 +116,7 @@ func _drop_inventory_stack(slot_index: int, expected, screen_position: Vector2) 
 func _process(_delta: float) -> void:
 	var hovered := get_viewport().gui_get_hovered_control()
 	var available := false
-	if hovered != null:
+	if hovered != null and hovered != _world_drop_target:
 		available = _ui.is_interactable(hovered) or _reload_ui.is_interactable(hovered)
 	else:
 		var query := PhysicsPointQueryParameters2D.new()
@@ -142,7 +148,7 @@ func _process(_delta: float) -> void:
 
 func _reachable_door(area: Object) -> Node2D:
 	for door in _world.doors:
-		if door.interaction_area == area and door.can_unlock_from(_pickup.global_position):
+		if door.interaction_area == area and door.can_interact_from(_pickup.global_position):
 			return door
 	return null
 
@@ -151,6 +157,37 @@ func _can_world_interact(area: Object) -> bool:
 	return (area is WorldItem and _pickup.can_pickup(area)) or _reachable_door(area) != null
 
 
-func _request_door_unlock(door: Node2D) -> void:
-	if door.can_unlock_from(_pickup.global_position):
-		door.unlock()
+func _bind_door(door: Node2D) -> void:
+	door.interaction_requested.connect(_request_door_interaction)
+	door.key_requested.connect(_request_key_selection)
+
+
+func _request_door_interaction(door: Node2D) -> void:
+	if door.can_interact_from(_pickup.global_position):
+		door.interact_from(_pickup.global_position)
+
+
+func _request_key_selection(door: Node2D) -> void:
+	if not is_instance_valid(door) or not door.accepts_key(door.key_id):
+		return
+	_pending_key_door = weakref(door)
+	_ui.open_panel()
+
+
+func _on_inventory_item_selected(slot_index: int, item_stack) -> void:
+	if _pending_key_door == null:
+		return
+	var door = _pending_key_door.get_ref()
+	if not is_instance_valid(door):
+		_pending_key_door = null
+		return
+	if not door.accepts_key(item_stack.definition.key_id):
+		return
+	if door.consume_key_on_unlock:
+		if slot_index < 0 or not _pickup.inventory.remove_one(slot_index, item_stack):
+			return
+	if not door.unlock_with_key(item_stack.definition.key_id):
+		return
+	_pending_key_door = null
+	_ui.close_panel()
+	door.open_after_unlock()

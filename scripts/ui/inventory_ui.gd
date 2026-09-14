@@ -1,6 +1,7 @@
 extends Control
 
 signal panel_changed
+signal item_selected(slot_index: int, item_stack)
 
 const Inventory = preload("res://scripts/inventory/inventory.gd")
 const Equipment = preload("res://scripts/inventory/equipment.gd")
@@ -33,9 +34,12 @@ func bind_inventory(inventory: Inventory, equipment: Equipment) -> void:
 		slot.inventory = inventory
 		slot.equipment = equipment
 		slot.slot_index = index
+		slot.item_pressed.connect(_on_item_pressed)
 		_grid.add_child(slot)
 	_weapon_slot.inventory = inventory
 	_weapon_slot.equipment = equipment
+	if not _weapon_slot.item_pressed.is_connected(_on_item_pressed):
+		_weapon_slot.item_pressed.connect(_on_item_pressed)
 	_inventory.changed.connect(_refresh)
 	_equipment.changed.connect(_refresh)
 	_refresh()
@@ -63,6 +67,14 @@ func _toggle_panel() -> void:
 	panel_changed.emit()
 
 
+func open_panel() -> bool:
+	if _panel.visible:
+		return false
+	_panel.show()
+	panel_changed.emit()
+	return true
+
+
 func is_open() -> bool:
 	return _panel.visible
 
@@ -81,3 +93,7 @@ func close_for_outside_click(screen_position: Vector2) -> bool:
 	if _button.get_global_rect().has_point(screen_position):
 		return false
 	return close_panel()
+
+
+func _on_item_pressed(slot_index: int, item_stack) -> void:
+	item_selected.emit(slot_index, item_stack)

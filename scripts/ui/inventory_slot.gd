@@ -1,6 +1,8 @@
 extends PanelContainer
 ## Native drag/drop view. Immutable source values detect stale drags.
 
+signal item_pressed(slot_index: int, item_stack)
+
 const Inventory = preload("res://scripts/inventory/inventory.gd")
 const Equipment = preload("res://scripts/inventory/equipment.gd")
 const ItemStack = preload("res://scripts/inventory/item_stack.gd")
@@ -29,6 +31,14 @@ func refresh() -> void:
 	_name_label.text = item_stack.definition.display_name if item_stack != null else empty_text
 	_quantity.text = str(item_stack.quantity) if item_stack != null else ""
 	_quantity.visible = item_stack != null and item_stack.quantity > 1
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT \
+			and event.pressed:
+		var item_stack := get_item_stack()
+		if item_stack != null:
+			item_pressed.emit(slot_index, item_stack)
 
 
 func _get_drag_data(_position: Vector2) -> Variant:

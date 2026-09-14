@@ -8,6 +8,7 @@ enum EquipmentSlotType { NONE, WEAPON }
 @export var icon: Texture2D
 @export_range(1, 999, 1) var max_stack_size: int = 1
 @export var equipment_slot: EquipmentSlotType = EquipmentSlotType.NONE
+@export var key_id: StringName = &""
 @export var firearm: FirearmDefinition
 @export_group("Presentation")
 @export var reload_layout: PackedScene

@@ -13,11 +13,13 @@
 [ext_resource type="PackedScene" path="res://scenes/prefabs/world/level_boundary_2d.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/world/door_2d.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/world/window_2d.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/items/key_world_item.tscn" id="14"]
+[ext_resource type="Resource" path="res://resources/items/wrong_test_key.tres" id="15"]
 
 [node name="MovementTest" type="Node2D" unique_id=1179780724 node_paths=PackedStringArray("doors")]
 light_mask = 2
 script = ExtResource("2")
-doors = Array[NodePath]([NodePath("Environment/Door")])
+doors = Array[NodePath]([NodePath("Environment/Door"), NodePath("Environment/LockedDoor")])
 
 [node name="Floor" type="Polygon2D" parent="."]
 z_index = -10
@@ -42,6 +44,10 @@ closed = false
 
 [node name="Door" parent="Environment" instance=ExtResource("12")]
 position = Vector2(260, 380)
+
+[node name="LockedDoor" parent="Environment" instance=ExtResource("12")]
+position = Vector2(650, 540)
+key_id = &"test_room"
 
 [node name="DoorWallRight" parent="Environment" instance=ExtResource("11")]
 points = PackedVector2Array(356, 380, 456, 380)
@@ -117,6 +123,13 @@ definition = ExtResource("6")
 position = Vector2(235, 620)
 definition = ExtResource("8")
 
+[node name="TestRoomKey" parent="." instance=ExtResource("14")]
+position = Vector2(300, 590)
+
+[node name="WrongKey" parent="." instance=ExtResource("14")]
+position = Vector2(350, 590)
+definition = ExtResource("15")
+
 [node name="VisionBehindWall" parent="." unique_id=469014277 instance=ExtResource("3")]
 position = Vector2(260, 175)
 definition = ExtResource("4")
@@ -178,6 +191,8 @@ position = Vector2(149, 451)
 [connection signal="pickup_requested" from="AmmoSecond" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="TestWeapon" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="Shotgun" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="TestRoomKey" to="Player/PickupInteractor" method="request_pickup"]
+[connection signal="pickup_requested" from="WrongKey" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="VisionBehindWall" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="VisionPartialWall" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="VisionRoundEdge" to="Player/PickupInteractor" method="request_pickup"]

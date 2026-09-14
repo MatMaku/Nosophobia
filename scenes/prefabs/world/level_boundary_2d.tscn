@@ -9,7 +9,7 @@ segments = PackedVector2Array(-240, -160, 240, -160, 240, -160, 240, 160, 240, 1
 polygon = PackedVector2Array(-240, -160, 240, -160, 240, 160, -240, 160)
 
 [node name="LevelBoundary2D" type="Line2D" unique_id=879887418]
-light_mask = 2
+light_mask = 1
 texture_repeat = 2
 points = PackedVector2Array(-240, -160, 240, -160, 240, 160, -240, 160)
 closed = true

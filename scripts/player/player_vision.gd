@@ -65,7 +65,8 @@ func _sync_mask() -> void:
 		if not copy.visible:
 			continue
 		copy.visible = (source.occluder_light_mask & VISIBILITY_OCCLUSION) != 0
-		copy.global_transform = source.global_transform
+		if not copy.global_transform.is_equal_approx(source.global_transform):
+			copy.global_transform = source.global_transform
 		var width := _get_occlusion_width(source)
 		if width > 0.0:
 			if copy.occluder == source.occluder:
@@ -82,7 +83,8 @@ func _get_occlusion_width(source: LightOccluder2D) -> float:
 func _sync_far_edge(source: LightOccluder2D, copy: LightOccluder2D, width: float) -> void:
 	var authored := source.occluder.polygon
 	if authored.size() < 2:
-		copy.occluder.polygon = authored
+		if copy.occluder.polygon != authored:
+			copy.occluder.polygon = authored
 		return
 	var viewer := source.to_local(global_position)
 	var normals: Array[Vector2] = []
@@ -109,6 +111,10 @@ func _sync_far_edge(source: LightOccluder2D, copy: LightOccluder2D, width: float
 			var projection := maxf(absf(normal.dot(following)), 0.25)
 			normal /= projection
 		far_edge.append(authored[index] + normal * width * 0.5)
-	copy.occluder.polygon = far_edge
-	copy.occluder.closed = source.occluder.closed
-	copy.occluder.cull_mode = OccluderPolygon2D.CULL_DISABLED
+	# Reassigning an unchanged polygon dirties the shadow geometry and can shimmer.
+	if copy.occluder.polygon != far_edge:
+		copy.occluder.polygon = far_edge
+	if copy.occluder.closed != source.occluder.closed:
+		copy.occluder.closed = source.occluder.closed
+	if copy.occluder.cull_mode != OccluderPolygon2D.CULL_DISABLED:
+		copy.occluder.cull_mode = OccluderPolygon2D.CULL_DISABLED

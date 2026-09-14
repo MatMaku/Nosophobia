@@ -128,6 +128,16 @@ func take(index: int, expected: ItemStack) -> ItemStack:
 	return expected
 
 
+## Removes one unit from the exact current stack, preserving every other unit.
+func remove_one(index: int, expected: ItemStack) -> bool:
+	if not _valid_index(index) or expected == null or _slots[index] != expected:
+		return false
+	_slots[index] = ItemStack.new(expected.definition, expected.quantity - 1) \
+		if expected.quantity > 1 else null
+	changed.emit()
+	return true
+
+
 func _valid_index(index: int) -> bool:
 	return index >= 0 and index < _slots.size()
 

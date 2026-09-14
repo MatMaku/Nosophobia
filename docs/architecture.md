@@ -20,7 +20,7 @@ scenes/
   prefabs/lighting/decorative_light_2d.tscn
   prefabs/world/{level_boundary_2d, door_2d, window_2d}.tscn
   world/visibility_fog.tscn
-  prefabs/items/world_item.tscn
+  prefabs/items/{world_item, key_world_item}.tscn
   ui/inventory_ui.tscn
   ui/inventory_slot.tscn
   ui/item_drag_preview.tscn
@@ -35,7 +35,7 @@ scripts/
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
   ui/{cursor_controller, inventory_ui, inventory_slot, world_drop_target}.gd
-resources/items/{test_item, test_ammo, test_weapon}.tres
+resources/items/{test_item, test_ammo, test_weapon, test_room_key, wrong_test_key}.tres
 Sprites/Cursor/{Cursor Default, Cursor Abierto, Cursor Agarrando}.png
 docs/architecture.md
 ```
@@ -61,7 +61,8 @@ docs/architecture.md
   GridContainer y un único WeaponSlot. Instancia InventorySlot según la capacidad.
   Los controles viven bajo HUD, independientes de la cámara.
 - **InventorySlot** es un PanelContainer con icono, nombre y cantidad. Inicia y
-  recibe drag & drop nativo; solicita operaciones a los modelos, sin almacenarlos.
+  recibe drag & drop nativo y notifica clicks de selección; solicita operaciones
+  a los modelos, sin almacenarlos.
 - **WorldDropTarget** es un Control fullscreen ubicado detrás de las UIs. Solo
   acepta drags nacidos en slots normales; los clicks comunes pasan sin consumirse.
 - **DecorativeLight2D** compone un PointLight2D con sombra y genera su máscara
@@ -71,7 +72,7 @@ docs/architecture.md
 
 | Script | Responsabilidad | No hace |
 | --- | --- | --- |
-| main.gd | Componer UI/modelos, cursor, input handoff y drop al mundo. | Reglas de pickup o almacenamiento. |
+| main.gd | Componer UI/modelos, cursor, input handoff, puertas y drop al mundo. | Reglas de pickup o almacenamiento. |
 | wheelchair_body.gd | Fuerza longitudinal, torque, agarre lateral e impulso externo. | UI, pickup o reglas de inventario. |
 | wheelchair_input.gd | Tracking local del mouse, drag dentro del radio y prioridad de clicks. | Aplicar fuerzas o recoger items. |
 | wheelchair_debug.gd | Dibujar radio, cursor, inicio del gesto y frente. | Reglas físicas. |
@@ -79,9 +80,9 @@ docs/architecture.md
 | weapon_aim_controller.gd | Target, seguimiento angular, sway y dirección final compartida. | Spread, recoil o sistema de salud. |
 | weapon_aim_visual.gd | Orientar AimUpperBody/AimMuzzle y desplazar el torso por recoil. | Interpolar una segunda dirección de aim. |
 | pickup_interactor.gd | Poseer Inventory/Equipment, validar distancia y recoger cantidades. | Dibujar UI o mover la silla. |
-| item_definition.gd | Datos estáticos, máximo de stack y tipo de equipo. | Estado mutable por instancia. |
+| item_definition.gd | Datos estáticos, máximo de stack, equipo y key_id opcional. | Estado mutable por instancia. |
 | item_stack.gd | Valor runtime inmutable: definición y cantidad. | UI o drag preview. |
-| inventory.gd | Slots ordenados, stacks, inserción, merge, swap y consulta. | SceneTree, UI o posición del jugador. |
+| inventory.gd | Slots, stacks, inserción, merge, swap y extracción verificada. | SceneTree, UI o posición del jugador. |
 | equipment.gd | Un arma equipada y transferencias verificadas con Inventory. | Labels, iconos o nodos UI. |
 | world_item.gd | Mostrar el item, conservar stack runtime y solicitar pickup. | Inventario o búsqueda de Player. |
 | cursor_controller.gd | Aplicar cursor hardware según contexto semántico. | Reglas de WorldItem, UI o silla. |
@@ -90,14 +91,14 @@ docs/architecture.md
 | world_drop_target.gd | Solicitar un drop al mundo desde un drag válido. | Instanciar WorldItem o modificar Inventory. |
 | decorative_light_2d.gd | Generar máscara irregular y variación temporal sutil. | Visibilidad del jugador o gameplay. |
 | level_boundary_2d.gd | Sincronizar puntos de Line2D hacia colisión y oclusión. | Generar contenido del nivel. |
-| door_2d.gd | Configurar hoja/bisagra y liberar el latch ante solicitud válida. | Abrir automáticamente o buscar al Player. |
+| door_2d.gd | Estados de latch/key lock, transición breve y hoja física con bisagra. | Buscar Inventory, UI o Player. |
 | movement_test.gd | Referencias de composición y spawn de drops runtime. | Generar la demo o dibujar muros. |
 | player_vision.gd | Construir la máscara de visión y desplazar oclusión gruesa a la cara lejana. | Iluminación decorativa o colisiones. |
 
 ## Data models
 
-- **ItemDefinition**: Resource con display_name, icon, max_stack_size y el enum
-  EquipmentSlotType (NONE o WEAPON). Se trata como inmutable durante el juego.
+- **ItemDefinition**: Resource con display_name, icon, max_stack_size, key_id opcional
+  y EquipmentSlotType (NONE o WEAPON). Se trata como inmutable durante el juego.
   No tiene balas cargadas, durabilidad, efectos ni estado particular.
 - **ItemStack**: RefCounted inmutable con ItemDefinition y quantity. Cada stack
   cumple 1 <= quantity <= max_stack_size.
@@ -138,6 +139,12 @@ InventorySlot --drag nativo--> WorldDropTarget --drop requested--> Main
 WheelchairInput --consume_motion--> WheelchairBody --> fuerzas/torque
         |
         +--> WheelchairDebug (lectura)
+
+Door2D KEY_LOCKED --rattle/key_requested--> Main --> InventoryUI.open_panel
+InventorySlot --item_selected--> InventoryUI --> Main
+                                            | key_id compatible
+                                            v
+                           Door2D LATCHED --> opening --> OPEN
 ```
 
 pickup_distance es independiente de interaction_radius. Un item lejano o sin
@@ -345,8 +352,12 @@ noise_scale deforman ligeramente la máscara. noise_speed anima solo una oscilac
 sutil de energía; cero la desactiva. Color, energy, escala y suavidad de sombra siguen
 editándose en el PointLight2D hijo.
 
-Las luces decorativas iluminan CanvasItems en la máscara visual 2 y sus occluders usan
-esa misma máscara. PlayerVision renderiza su propia máscara de visibilidad en un
+Las luces decorativas iluminan CanvasItems receptores en la máscara visual 2 y sus
+occluders usan esa misma máscara. Los visuales sólidos de LevelBoundary2D y Door2D
+permanecen en máscara 1: conservan su color base sin recibir DecorativeLight, mientras
+sus LightOccluder mantienen máscara 3 y continúan bloqueando tanto luz (bit 2) como
+PlayerVision (bit 1). Window2D conserva máscara visual 2 y no posee occluder, por lo
+que la luz y la visión atraviesan el cristal. PlayerVision renderiza su propia máscara en un
 SubViewport separado usando copias de nodos occluder. Las geometrías sin grosor
 comparten su Resource; muros y puertas poseen una copia de visión derivada.
 VisibilityFog compone esa máscara sobre el mundo antes de Grain y HUD.
@@ -432,18 +443,37 @@ la máscara visual: colisión, disparos y sombras decorativas no cambian.
 
 Door2D es un prefab físico con HingeAnchor, DoorBody RigidBody2D, área clickeable,
 LightOccluder y PinJoint2D. Main valida distancia mediante la lista explícita
-MovementTest.doors: un click alcanzable libera el latch y coloca la hoja en
-unlatched_angle_degrees; desde allí solo fuerzas/colisiones mueven la puerta.
+MovementTest.doors. Sus estados locales son:
+
+```text
+LATCHED --click/tween corto--> OPEN --cierre físico lento--> LATCHED
+KEY_LOCKED --click/rattle--> selección en Inventory --key_id igual-->
+LATCHED --tween corto--> OPEN
+```
+
+La apertura inicial elige el signo opuesto al Player en coordenadas locales y,
+al terminar, solo fuerzas/colisiones mueven la hoja. El relatch exige cercanía a
+cero y baja velocidad angular. Desbloquear con llave es permanente para esa instancia:
+los cierres posteriores vuelven a LATCHED, nunca a KEY_LOCKED.
 La hoja bloquea cuerpos, balas, PlayerVision y luz según su transform real.
-Inspector expone locked_initially, interaction_distance, unlatched angle,
-min/max angle y leaf_size; masa y angular_damp son propiedades nativas de DoorBody,
-y la textura es la propiedad nativa de Visual.
+Inspector expone interaction_distance, unlatched/max angle, opening_time, umbrales
+de relatch, key_id, consume_key_on_unlock, rattle y leaf_size; masa y angular_damp
+son propiedades nativas de DoorBody, y la textura es la propiedad nativa de Visual.
+
+`Door2D.key_id == ItemDefinition.key_id` autoriza el desbloqueo; vacío representa
+una puerta o item sin llave. Main conserva una referencia débil únicamente durante
+la selección y solicita a Inventory quitar una unidad solo cuando la puerta configura
+consume_key_on_unlock, activado por defecto. La puerta no inspecciona slots y la UI
+no modifica su estado.
+El prefab configurado de llave está en scenes/prefabs/items/key_world_item.tscn y
+su definición de ejemplo en resources/items/test_room_key.tres.
 
 Window2D es un StaticBody2D sin script ni LightOccluder: Visual y CollisionShape2D
 son editables como hijos. Bloquea silla y raycasts en capa 1, pero visión y luz
 atraviesan el vidrio. No existe rotura todavía.
 
 scenes/world/movement_test.tscn es el único level playground y la escena que Main
-instancia. Muros, puerta, ventana, tres luces configuradas por instancia, Player,
+instancia. Muros, puerta normal, puerta con llave, llaves de prueba, ventana,
+tres luces configuradas por instancia, Player,
 enemigos e items están guardados como nodos/instancias en ese `.tscn`; ningún script
 crea contenido permanente de la demo.
