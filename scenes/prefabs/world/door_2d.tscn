@@ -2,13 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/world/door_2d.gd" id="1"]
 
-[sub_resource type="Gradient" id="Color"]
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
-
-[sub_resource type="GradientTexture2D" id="Placeholder"]
-gradient = SubResource("Color")
-width = 96
-height = 12
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_leaf.svg" id="2"]
 
 [sub_resource type="RectangleShape2D" id="LeafShape"]
 resource_local_to_scene = true
@@ -39,10 +33,18 @@ angular_damp_mode = 1
 angular_damp = 3.0
 continuous_cd = 2
 
-[node name="Visual" type="Sprite2D" parent="DoorBody"]
+[node name="Visual" type="NinePatchRect" parent="DoorBody"]
 light_mask = 1
-modulate = Color(0.62, 0.4, 0.23, 1)
-texture = SubResource("Placeholder")
+offset_left = -48.0
+offset_top = -6.0
+offset_right = 48.0
+offset_bottom = 6.0
+mouse_filter = 2
+texture = ExtResource("2")
+patch_margin_left = 8
+patch_margin_top = 2
+patch_margin_right = 16
+patch_margin_bottom = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorBody"]
 shape = SubResource("LeafShape")

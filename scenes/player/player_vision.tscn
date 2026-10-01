@@ -1,62 +1,27 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cyvtx0dxkmvxq"]
 
-[ext_resource type="Texture2D" path="res://Sprites/vision/forward_vision.svg" id="1"]
-[ext_resource type="Script" path="res://scripts/player/player_vision.gd" id="2"]
+[ext_resource type="Script" uid="uid://cy0kd45vaw14f" path="res://scripts/player/player_vision.gd" id="2"]
 
-[sub_resource type="World2D" id="MaskWorld"]
-resource_local_to_scene = true
-
-[sub_resource type="Gradient" id="PeripheralGradient"]
-offsets = PackedFloat32Array(0, 0.35, 0.7, 1)
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.5, 1, 1, 1, 0)
-
-[sub_resource type="GradientTexture2D" id="PeripheralTexture"]
-gradient = SubResource("PeripheralGradient")
-width = 320
-height = 320
-fill = 1
-fill_from = Vector2(0.5, 0.5)
-fill_to = Vector2(0.5, 0)
-
-[node name="PlayerVision" type="Node2D"]
+[node name="PlayerVision" type="Node2D" unique_id=1088190478]
 script = ExtResource("2")
+occlusion_thickness_ratio = 0.15
 
-[node name="VisibilityMask" type="SubViewport" parent="."]
-world_2d = SubResource("MaskWorld")
+[node name="VisibilityMask" type="SubViewport" parent="." unique_id=1253180802]
 disable_3d = true
 handle_input_locally = false
 gui_disable_input = true
 size = Vector2i(1152, 720)
 render_target_update_mode = 4
 
-[node name="MaskDarkness" type="CanvasModulate" parent="VisibilityMask"]
+[node name="MaskDarkness" type="CanvasModulate" parent="VisibilityMask" unique_id=1370673197]
 color = Color(0, 0, 0, 1)
 
-[node name="MaskSurface" type="Polygon2D" parent="VisibilityMask"]
-color = Color(1, 1, 1, 1)
-light_mask = 1
+[node name="MaskSurface" type="Polygon2D" parent="VisibilityMask" unique_id=1017138098]
 
-[node name="Occluders" type="Node2D" parent="VisibilityMask"]
+[node name="Occluders" type="Node2D" parent="VisibilityMask" unique_id=892989452]
 
-[node name="VisionOrigin" type="Node2D" parent="VisibilityMask"]
+[node name="VisionOrigin" type="Node2D" parent="VisibilityMask" unique_id=185777011]
 
-[node name="ForwardVisionLight" type="PointLight2D" parent="VisibilityMask/VisionOrigin"]
-texture = ExtResource("1")
-texture_scale = 0.65
+[node name="VisionLight" type="PointLight2D" parent="VisibilityMask/VisionOrigin" unique_id=1649049306]
 blend_mode = 2
-energy = 1.0
-range_item_cull_mask = 1
 shadow_enabled = true
-shadow_filter = 1
-shadow_filter_smooth = 1.5
-shadow_item_cull_mask = 1
-
-[node name="PeripheralVisionLight" type="PointLight2D" parent="VisibilityMask/VisionOrigin"]
-texture = SubResource("PeripheralTexture")
-blend_mode = 2
-energy = 1.0
-range_item_cull_mask = 1
-shadow_enabled = true
-shadow_filter = 1
-shadow_filter_smooth = 1.5
-shadow_item_cull_mask = 1

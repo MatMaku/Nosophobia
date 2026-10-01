@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://scenes/prefabs/world/window_2d.tscn" id="13"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/items/key_world_item.tscn" id="14"]
 [ext_resource type="Resource" path="res://resources/items/wrong_test_key.tres" id="15"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/floors/floor_clinic_tile.svg" id="16"]
 
 [node name="MovementTest" type="Node2D" unique_id=1179780724 node_paths=PackedStringArray("doors")]
 light_mask = 2
@@ -25,7 +26,8 @@ doors = Array[NodePath]([NodePath("Environment/Door"), NodePath("Environment/Loc
 z_index = -10
 light_mask = 2
 polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 720, 0, 720)
-color = Color(0.055, 0.07, 0.09, 1)
+texture_repeat = 2
+texture = ExtResource("16")
 
 [node name="AmbientDarkness" type="CanvasModulate" parent="." unique_id=1990364449]
 color = Color(0.65, 0.65, 0.7, 1)
@@ -55,6 +57,18 @@ closed = false
 
 [node name="Window" parent="Environment" instance=ExtResource("13")]
 position = Vector2(504, 380)
+
+[node name="WindowShootingTest" parent="Environment" instance=ExtResource("13")]
+position = Vector2(530, 550)
+pane_size = Vector2(128, 20)
+
+[node name="GlassTestLabel" type="Label" parent="Environment"]
+light_mask = 2
+offset_left = 466.0
+offset_top = 580.0
+text = "VIDRIO: RODEAR + DISPARAR DESDE 4 LADOS"
+theme_override_font_sizes/font_size = 10
+mouse_filter = 2
 
 [node name="WindowWallRight" parent="Environment" instance=ExtResource("11")]
 points = PackedVector2Array(552, 380, 1128, 380)
@@ -89,7 +103,7 @@ mouse_filter = 2
 light_mask = 2
 offset_left = 460.0
 offset_top = 402.0
-text = "VENTANA: VER, NO PASAR"
+text = "VIDRIO: 75 HP / VER, NO PASAR"
 theme_override_font_sizes/font_size = 10
 mouse_filter = 2
 

@@ -5,6 +5,7 @@ const TEXTURE_SIZE: int = 128
 
 @export_group("Light character")
 @export_range(0.0, 1.0, 0.01) var edge_hardness: float = 0.78
+@export_range(0.1, 1.0, 0.01) var center_intensity: float = 0.72
 @export_range(0.0, 0.3, 0.01) var noise_amount: float = 0.1
 @export_range(1.0, 12.0, 0.25) var noise_scale: float = 5.0
 @export_range(0.0, 2.0, 0.05) var noise_speed: float = 0.35
@@ -36,18 +37,16 @@ func _build_light_texture() -> ImageTexture:
 	var noise := FastNoiseLite.new()
 	noise.seed = get_path().hash()
 	noise.frequency = noise_scale / float(TEXTURE_SIZE)
-	var edge_width := lerpf(0.48, 0.12, edge_hardness)
-	var edge_start := 1.0 - edge_width
-	var levels := roundi(lerpf(14.0, 6.0, edge_hardness))
+	var falloff_power := lerpf(1.1, 2.2, edge_hardness)
 	for y in TEXTURE_SIZE:
 		for x in TEXTURE_SIZE:
 			var centered := Vector2(x, y) / float(TEXTURE_SIZE - 1) * 2.0 - Vector2.ONE
 			var radial_distance := centered.length()
 			var sample := noise.get_noise_2d(float(x), float(y))
 			var warped_radius := radial_distance + sample * noise_amount
-			var alpha := 1.0 - smoothstep(edge_start, 1.0, warped_radius)
+			var distance_falloff := 1.0 - smoothstep(0.0, 1.0, warped_radius)
+			var alpha := center_intensity * pow(distance_falloff, falloff_power)
 			var edge_mix := smoothstep(0.25, 1.0, radial_distance)
 			alpha *= 1.0 - (sample * 0.5 + 0.5) * noise_amount * 0.12 * edge_mix
-			alpha = round(alpha * levels) / float(levels)
 			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, clampf(alpha, 0.0, 1.0)))
 	return ImageTexture.create_from_image(image)

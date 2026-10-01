@@ -1,0 +1,561 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/floors/floor_clinic_tile.svg" id="1"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/walls/wall_mid_tile.svg" id="2"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/walls/wall_cap.svg" id="3"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_mid_tile.svg" id="4"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_cap.svg" id="5"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_leaf.svg" id="6"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_mid_tile.svg" id="7"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_hinge_cap.svg" id="8"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_handle_cap.svg" id="9"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_frame_jamb.svg" id="10"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/revolver_ammo_inventory.svg" id="11"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/revolver_ammo_world.svg" id="12"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/shotgun_shell_inventory.svg" id="13"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/shotgun_shell_world.svg" id="14"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/healing_item_inventory.svg" id="15"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/healing_item_world.svg" id="16"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/key_inventory.svg" id="17"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/key_world.svg" id="18"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/generic_pickup_inventory.svg" id="19"]
+[ext_resource type="Texture2D" path="res://sprites_codex/items/generic_pickup_world.svg" id="20"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/world/revolver_world.svg" id="21"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/inventory/revolver_inventory.svg" id="22"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/equipped_slot/revolver_equipped_slot.svg" id="23"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/reload_button/revolver_reload_button.svg" id="24"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/character_equipped/revolver_character_equipped.svg" id="25"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/world/shotgun_world.svg" id="26"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/inventory/shotgun_inventory.svg" id="27"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/equipped_slot/shotgun_equipped_slot.svg" id="28"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/reload_button/shotgun_reload_button.svg" id="29"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/character_equipped/shotgun_character_equipped.svg" id="30"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/reload_view/revolver_reload_view.svg" id="31"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/reload_view/shotgun_reload_view.svg" id="32"]
+
+[node name="ArtReferenceGallery" type="Node2D"]
+
+[node name="Background" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 1600, 0, 1600, 1500, 0, 1500)
+color = Color(0.065, 0.09, 0.085, 1)
+
+[node name="Title" type="Label" parent="."]
+position = Vector2(24, 16)
+text = "NOSOPHOBIA / CODEX — REFERENCIAS DE PROTOTIPO"
+theme_override_font_sizes/font_size = 26
+
+[node name="Card0" type="Polygon2D" parent="."]
+position = Vector2(24, 80)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite0" type="Sprite2D" parent="."]
+position = Vector2(146, 149)
+texture = ExtResource("1")
+scale = Vector2(0.984375, 0.984375)
+
+[node name="Label0" type="Label" parent="."]
+position = Vector2(32, 214)
+theme_override_font_sizes/font_size = 13
+text = "floor_clinic_tile\n128 x 128 | environment"
+
+[node name="Card1" type="Polygon2D" parent="."]
+position = Vector2(282, 80)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite1" type="Sprite2D" parent="."]
+position = Vector2(404, 149)
+texture = ExtResource("2")
+scale = Vector2(1, 1)
+
+[node name="Label1" type="Label" parent="."]
+position = Vector2(290, 214)
+theme_override_font_sizes/font_size = 13
+text = "wall_mid_tile\n64 x 16 | environment"
+
+[node name="Card2" type="Polygon2D" parent="."]
+position = Vector2(540, 80)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite2" type="Sprite2D" parent="."]
+position = Vector2(662, 149)
+texture = ExtResource("3")
+scale = Vector2(1, 1)
+
+[node name="Label2" type="Label" parent="."]
+position = Vector2(548, 214)
+theme_override_font_sizes/font_size = 13
+text = "wall_cap\n8 x 16 | environment"
+
+[node name="Card3" type="Polygon2D" parent="."]
+position = Vector2(798, 80)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite3" type="Sprite2D" parent="."]
+position = Vector2(920, 149)
+texture = ExtResource("4")
+scale = Vector2(1, 1)
+
+[node name="Label3" type="Label" parent="."]
+position = Vector2(806, 214)
+theme_override_font_sizes/font_size = 13
+text = "window_mid_tile\n32 x 12 | environment"
+
+[node name="Card4" type="Polygon2D" parent="."]
+position = Vector2(1056, 80)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite4" type="Sprite2D" parent="."]
+position = Vector2(1178, 149)
+texture = ExtResource("5")
+scale = Vector2(1, 1)
+
+[node name="Label4" type="Label" parent="."]
+position = Vector2(1064, 214)
+theme_override_font_sizes/font_size = 13
+text = "window_cap\n8 x 12 | environment"
+
+[node name="Card5" type="Polygon2D" parent="."]
+position = Vector2(1314, 80)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite5" type="Sprite2D" parent="."]
+position = Vector2(1436, 149)
+texture = ExtResource("6")
+scale = Vector2(1, 1)
+
+[node name="Label5" type="Label" parent="."]
+position = Vector2(1322, 214)
+theme_override_font_sizes/font_size = 13
+text = "door_leaf\n96 x 12 | environment"
+
+[node name="Card6" type="Polygon2D" parent="."]
+position = Vector2(24, 275)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite6" type="Sprite2D" parent="."]
+position = Vector2(146, 344)
+texture = ExtResource("7")
+scale = Vector2(1, 1)
+
+[node name="Label6" type="Label" parent="."]
+position = Vector2(32, 409)
+theme_override_font_sizes/font_size = 13
+text = "door_mid_tile\n32 x 12 | environment"
+
+[node name="Card7" type="Polygon2D" parent="."]
+position = Vector2(282, 275)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite7" type="Sprite2D" parent="."]
+position = Vector2(404, 344)
+texture = ExtResource("8")
+scale = Vector2(1, 1)
+
+[node name="Label7" type="Label" parent="."]
+position = Vector2(290, 409)
+theme_override_font_sizes/font_size = 13
+text = "door_hinge_cap\n8 x 12 | environment"
+
+[node name="Card8" type="Polygon2D" parent="."]
+position = Vector2(540, 275)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite8" type="Sprite2D" parent="."]
+position = Vector2(662, 344)
+texture = ExtResource("9")
+scale = Vector2(1, 1)
+
+[node name="Label8" type="Label" parent="."]
+position = Vector2(548, 409)
+theme_override_font_sizes/font_size = 13
+text = "door_handle_cap\n16 x 12 | environment"
+
+[node name="Card9" type="Polygon2D" parent="."]
+position = Vector2(798, 275)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite9" type="Sprite2D" parent="."]
+position = Vector2(920, 344)
+texture = ExtResource("10")
+scale = Vector2(1, 1)
+
+[node name="Label9" type="Label" parent="."]
+position = Vector2(806, 409)
+theme_override_font_sizes/font_size = 13
+text = "door_frame_jamb\n8 x 20 | environment"
+
+[node name="Card10" type="Polygon2D" parent="."]
+position = Vector2(1056, 275)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite10" type="Sprite2D" parent="."]
+position = Vector2(1178, 344)
+texture = ExtResource("11")
+scale = Vector2(1, 1)
+
+[node name="Label10" type="Label" parent="."]
+position = Vector2(1064, 409)
+theme_override_font_sizes/font_size = 13
+text = "revolver_ammo_inventory\n64 x 64 | items"
+
+[node name="Card11" type="Polygon2D" parent="."]
+position = Vector2(1314, 275)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite11" type="Sprite2D" parent="."]
+position = Vector2(1436, 344)
+texture = ExtResource("12")
+scale = Vector2(1, 1)
+
+[node name="Label11" type="Label" parent="."]
+position = Vector2(1322, 409)
+theme_override_font_sizes/font_size = 13
+text = "revolver_ammo_world\n96 x 96 | items"
+
+[node name="Card12" type="Polygon2D" parent="."]
+position = Vector2(24, 470)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite12" type="Sprite2D" parent="."]
+position = Vector2(146, 539)
+texture = ExtResource("13")
+scale = Vector2(1, 1)
+
+[node name="Label12" type="Label" parent="."]
+position = Vector2(32, 604)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_shell_inventory\n64 x 64 | items"
+
+[node name="Card13" type="Polygon2D" parent="."]
+position = Vector2(282, 470)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite13" type="Sprite2D" parent="."]
+position = Vector2(404, 539)
+texture = ExtResource("14")
+scale = Vector2(1, 1)
+
+[node name="Label13" type="Label" parent="."]
+position = Vector2(290, 604)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_shell_world\n96 x 96 | items"
+
+[node name="Card14" type="Polygon2D" parent="."]
+position = Vector2(540, 470)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite14" type="Sprite2D" parent="."]
+position = Vector2(662, 539)
+texture = ExtResource("15")
+scale = Vector2(1, 1)
+
+[node name="Label14" type="Label" parent="."]
+position = Vector2(548, 604)
+theme_override_font_sizes/font_size = 13
+text = "healing_item_inventory\n64 x 64 | items"
+
+[node name="Card15" type="Polygon2D" parent="."]
+position = Vector2(798, 470)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite15" type="Sprite2D" parent="."]
+position = Vector2(920, 539)
+texture = ExtResource("16")
+scale = Vector2(1, 1)
+
+[node name="Label15" type="Label" parent="."]
+position = Vector2(806, 604)
+theme_override_font_sizes/font_size = 13
+text = "healing_item_world\n96 x 96 | items"
+
+[node name="Card16" type="Polygon2D" parent="."]
+position = Vector2(1056, 470)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite16" type="Sprite2D" parent="."]
+position = Vector2(1178, 539)
+texture = ExtResource("17")
+scale = Vector2(1, 1)
+
+[node name="Label16" type="Label" parent="."]
+position = Vector2(1064, 604)
+theme_override_font_sizes/font_size = 13
+text = "key_inventory\n64 x 64 | items"
+
+[node name="Card17" type="Polygon2D" parent="."]
+position = Vector2(1314, 470)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite17" type="Sprite2D" parent="."]
+position = Vector2(1436, 539)
+texture = ExtResource("18")
+scale = Vector2(1, 1)
+
+[node name="Label17" type="Label" parent="."]
+position = Vector2(1322, 604)
+theme_override_font_sizes/font_size = 13
+text = "key_world\n96 x 96 | items"
+
+[node name="Card18" type="Polygon2D" parent="."]
+position = Vector2(24, 665)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite18" type="Sprite2D" parent="."]
+position = Vector2(146, 734)
+texture = ExtResource("19")
+scale = Vector2(1, 1)
+
+[node name="Label18" type="Label" parent="."]
+position = Vector2(32, 799)
+theme_override_font_sizes/font_size = 13
+text = "generic_pickup_inventory\n64 x 64 | items"
+
+[node name="Card19" type="Polygon2D" parent="."]
+position = Vector2(282, 665)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite19" type="Sprite2D" parent="."]
+position = Vector2(404, 734)
+texture = ExtResource("20")
+scale = Vector2(1, 1)
+
+[node name="Label19" type="Label" parent="."]
+position = Vector2(290, 799)
+theme_override_font_sizes/font_size = 13
+text = "generic_pickup_world\n96 x 96 | items"
+
+[node name="Card20" type="Polygon2D" parent="."]
+position = Vector2(540, 665)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite20" type="Sprite2D" parent="."]
+position = Vector2(662, 734)
+texture = ExtResource("21")
+scale = Vector2(1, 1)
+
+[node name="Label20" type="Label" parent="."]
+position = Vector2(548, 799)
+theme_override_font_sizes/font_size = 13
+text = "revolver_world\n128 x 96 | weapons"
+
+[node name="Card21" type="Polygon2D" parent="."]
+position = Vector2(798, 665)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite21" type="Sprite2D" parent="."]
+position = Vector2(920, 734)
+texture = ExtResource("22")
+scale = Vector2(1, 1)
+
+[node name="Label21" type="Label" parent="."]
+position = Vector2(806, 799)
+theme_override_font_sizes/font_size = 13
+text = "revolver_inventory\n64 x 64 | weapons"
+
+[node name="Card22" type="Polygon2D" parent="."]
+position = Vector2(1056, 665)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite22" type="Sprite2D" parent="."]
+position = Vector2(1178, 734)
+texture = ExtResource("23")
+scale = Vector2(1, 1)
+
+[node name="Label22" type="Label" parent="."]
+position = Vector2(1064, 799)
+theme_override_font_sizes/font_size = 13
+text = "revolver_equipped_slot\n96 x 64 | weapons"
+
+[node name="Card23" type="Polygon2D" parent="."]
+position = Vector2(1314, 665)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite23" type="Sprite2D" parent="."]
+position = Vector2(1436, 734)
+texture = ExtResource("24")
+scale = Vector2(1, 1)
+
+[node name="Label23" type="Label" parent="."]
+position = Vector2(1322, 799)
+theme_override_font_sizes/font_size = 13
+text = "revolver_reload_button\n64 x 64 | weapons"
+
+[node name="Card24" type="Polygon2D" parent="."]
+position = Vector2(24, 860)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite24" type="Sprite2D" parent="."]
+position = Vector2(146, 929)
+texture = ExtResource("25")
+scale = Vector2(0.984375, 0.984375)
+
+[node name="Label24" type="Label" parent="."]
+position = Vector2(32, 994)
+theme_override_font_sizes/font_size = 13
+text = "revolver_character_equipped\n64 x 128 | weapons"
+
+[node name="Card25" type="Polygon2D" parent="."]
+position = Vector2(282, 860)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite25" type="Sprite2D" parent="."]
+position = Vector2(404, 929)
+texture = ExtResource("26")
+scale = Vector2(1, 1)
+
+[node name="Label25" type="Label" parent="."]
+position = Vector2(290, 994)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_world\n128 x 96 | weapons"
+
+[node name="Card26" type="Polygon2D" parent="."]
+position = Vector2(540, 860)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite26" type="Sprite2D" parent="."]
+position = Vector2(662, 929)
+texture = ExtResource("27")
+scale = Vector2(1, 1)
+
+[node name="Label26" type="Label" parent="."]
+position = Vector2(548, 994)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_inventory\n64 x 64 | weapons"
+
+[node name="Card27" type="Polygon2D" parent="."]
+position = Vector2(798, 860)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite27" type="Sprite2D" parent="."]
+position = Vector2(920, 929)
+texture = ExtResource("28")
+scale = Vector2(1, 1)
+
+[node name="Label27" type="Label" parent="."]
+position = Vector2(806, 994)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_equipped_slot\n96 x 64 | weapons"
+
+[node name="Card28" type="Polygon2D" parent="."]
+position = Vector2(1056, 860)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite28" type="Sprite2D" parent="."]
+position = Vector2(1178, 929)
+texture = ExtResource("29")
+scale = Vector2(1, 1)
+
+[node name="Label28" type="Label" parent="."]
+position = Vector2(1064, 994)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_reload_button\n64 x 64 | weapons"
+
+[node name="Card29" type="Polygon2D" parent="."]
+position = Vector2(1314, 860)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite29" type="Sprite2D" parent="."]
+position = Vector2(1436, 929)
+texture = ExtResource("30")
+scale = Vector2(0.984375, 0.984375)
+
+[node name="Label29" type="Label" parent="."]
+position = Vector2(1322, 994)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_character_equipped\n64 x 128 | weapons"
+
+[node name="Card30" type="Polygon2D" parent="."]
+position = Vector2(24, 1055)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite30" type="Sprite2D" parent="."]
+position = Vector2(146, 1124)
+texture = ExtResource("31")
+scale = Vector2(0.5727272727272728, 0.5727272727272728)
+
+[node name="Label30" type="Label" parent="."]
+position = Vector2(32, 1189)
+theme_override_font_sizes/font_size = 13
+text = "revolver_reload_view\n300 x 220 | weapons"
+
+[node name="Card31" type="Polygon2D" parent="."]
+position = Vector2(282, 1055)
+polygon = PackedVector2Array(0, 0, 244, 0, 244, 178, 0, 178)
+color = Color(0.14, 0.18, 0.165, 1)
+
+[node name="Sprite31" type="Sprite2D" parent="."]
+position = Vector2(404, 1124)
+texture = ExtResource("32")
+scale = Vector2(0.5727272727272728, 0.5727272727272728)
+
+[node name="Label31" type="Label" parent="."]
+position = Vector2(290, 1189)
+theme_override_font_sizes/font_size = 13
+text = "shotgun_reload_view\n300 x 220 | weapons"
+
+[node name="TileTitle" type="Label" parent="."]
+position = Vector2(24, 1260)
+text = "REPETICION: PISO 4x1 / MURO / VENTANA / HOJA COMPONIBLE"
+
+[node name="FloorTiling" type="Sprite2D" parent="."]
+position = Vector2(24, 1300)
+centered = false
+texture = ExtResource("1")
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 512, 128)
+
+[node name="WallTiling" type="Sprite2D" parent="."]
+position = Vector2(570, 1310)
+centered = false
+texture = ExtResource("2")
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 512, 16)
+
+[node name="WindowTiling" type="Sprite2D" parent="."]
+position = Vector2(570, 1350)
+centered = false
+texture = ExtResource("4")
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 512, 12)
+
+[node name="DoorTiling" type="Sprite2D" parent="."]
+position = Vector2(570, 1390)
+centered = false
+texture = ExtResource("7")
+texture_repeat = 2
+region_enabled = true
+region_rect = Rect2(0, 0, 512, 12)

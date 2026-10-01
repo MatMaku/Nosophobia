@@ -35,6 +35,8 @@ func _draw() -> void:
 
 func _sync_geometry(force: bool = false) -> void:
 	_occluder.set_meta("vision_occlusion_width", width)
+	if material is ShaderMaterial:
+		material.set_shader_parameter("wall_width", width)
 	if force or points != _last_points or closed != _last_closed:
 		_last_points = points
 		_last_closed = closed

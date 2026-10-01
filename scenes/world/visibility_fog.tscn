@@ -5,6 +5,7 @@
 [sub_resource type="ShaderMaterial" id="FogMaterial"]
 resource_local_to_scene = true
 shader = ExtResource("1")
+shader_parameter/edge_filter_pixels = 1.5
 
 [node name="VisibilityFog" type="CanvasLayer"]
 layer = 1

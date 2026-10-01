@@ -62,7 +62,7 @@ func _is_clear_of_walls(candidate: Vector2) -> bool:
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
 	query.transform = Transform2D(0.0, candidate)
-	query.collision_mask = 1
+	query.collision_mask = 5 # Solid obstacles and broken-window body barriers.
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
 	query.exclude = [_player.get_rid()]

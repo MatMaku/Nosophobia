@@ -14,7 +14,11 @@ var _current_health: float = 0.0
 
 
 func _ready() -> void:
-	max_health = maxf(1.0, max_health)
+	reset(max_health)
+
+
+func reset(new_max_health: float) -> void:
+	max_health = maxf(1.0, new_max_health)
 	_current_health = max_health
 
 

@@ -1,25 +1,47 @@
 [gd_scene format=3]
 
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_intact.svg" id="1"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_cracked.svg" id="2"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_broken.svg" id="3"]
+[ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_shards.svg" id="4"]
+[ext_resource type="Script" path="res://scripts/world/window_2d.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="6"]
+
 [sub_resource type="RectangleShape2D" id="GlassShape"]
 resource_local_to_scene = true
-size = Vector2(96, 12)
-
-[sub_resource type="Gradient" id="GlassColor"]
-colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
-
-[sub_resource type="GradientTexture2D" id="GlassTexture"]
-gradient = SubResource("GlassColor")
-width = 96
-height = 12
+size = Vector2(96, 16)
 
 [node name="Window2D" type="StaticBody2D"]
-collision_layer = 1
+collision_layer = 5
 collision_mask = 1
+script = ExtResource("5")
+intact_texture = ExtResource("1")
+cracked_texture = ExtResource("2")
+broken_texture = ExtResource("3")
+max_durability = 75.0
 
-[node name="Visual" type="Sprite2D" parent="."]
+[node name="Visual" type="NinePatchRect" parent="."]
 light_mask = 2
-modulate = Color(0.35, 0.75, 0.9, 0.65)
-texture = SubResource("GlassTexture")
+offset_left = -48.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 8.0
+mouse_filter = 2
+texture = ExtResource("1")
+patch_margin_left = 6
+patch_margin_top = 4
+patch_margin_right = 6
+patch_margin_bottom = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("GlassShape")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("6")
+max_health = 75.0
+
+[node name="Shards" type="Sprite2D" parent="."]
+visible = false
+z_index = -1
+light_mask = 2
+texture = ExtResource("4")

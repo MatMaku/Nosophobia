@@ -1,10 +1,17 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/reload_ammo_control.tscn" id="1"]
+[ext_resource type="Texture2D" path="res://sprites_codex/weapons/reload_view/revolver_reload_view.svg" id="2"]
 
 [node name="ReloadLayout" type="Control"]
 custom_minimum_size = Vector2(300, 220)
 mouse_filter = 2
+
+[node name="WeaponReference" type="TextureRect" parent="."]
+offset_right = 300.0
+offset_bottom = 220.0
+mouse_filter = 2
+texture = ExtResource("2")
 
 [node name="Sockets" type="Control" parent="."]
 mouse_filter = 2

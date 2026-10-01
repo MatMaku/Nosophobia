@@ -23,13 +23,13 @@ enum DoorState { LATCHED, OPEN, KEY_LOCKED }
 @export_group("Leaf")
 @export var leaf_size: Vector2 = Vector2(96, 12):
 	set(value):
-		leaf_size = value.max(Vector2(1, 1))
+		leaf_size = value.max(Vector2(32, 8))
 		_sync_leaf()
 
 @onready var body: RigidBody2D = $DoorBody
 @onready var interaction_area: Area2D = $DoorBody/InteractionArea
 @onready var _joint: PinJoint2D = $PinJoint2D
-@onready var _visual: Sprite2D = $DoorBody/Visual
+@onready var _visual: NinePatchRect = $DoorBody/Visual
 @onready var _collision: CollisionShape2D = $DoorBody/CollisionShape2D
 @onready var _click_shape: CollisionShape2D = $DoorBody/InteractionArea/CollisionShape2D
 @onready var _occluder: LightOccluder2D = $DoorBody/LightOccluder
@@ -85,14 +85,14 @@ func _sync_leaf() -> void:
 	_collision.shape.size = leaf_size
 	_click_shape.position = Vector2.ZERO
 	_click_shape.shape.size = leaf_size + Vector2(0, 12)
-	_visual.position = Vector2.ZERO
-	if _visual.texture != null:
-		_visual.scale = leaf_size / _visual.texture.get_size()
+	_visual.position = -leaf_size * 0.5
+	_visual.size = leaf_size
 	_occluder.occluder.polygon = PackedVector2Array([
 		Vector2(-center.x, 0.0), Vector2(center.x, 0.0)])
 	_occluder.occluder.closed = false
 	_occluder.occluder.cull_mode = OccluderPolygon2D.CULL_DISABLED
 	_occluder.set_meta("vision_occlusion_width", leaf_size.y)
+	_occluder.set_meta("vision_dynamic_joint", true)
 
 
 func can_interact_from(world_position: Vector2) -> bool:
