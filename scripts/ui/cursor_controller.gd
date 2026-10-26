@@ -22,7 +22,14 @@ var _applied_state: int = -1
 
 
 func set_context(owner: Node, available: bool, active: bool, aiming: bool = false) -> void:
-	_contexts[owner.get_instance_id()] = [weakref(owner), available, active, aiming]
+	var id := owner.get_instance_id()
+	if not _contexts.has(id):
+		_contexts[id] = [weakref(owner), available, active, aiming]
+		return
+	var context: Array = _contexts[id]
+	context[1] = available
+	context[2] = active
+	context[3] = aiming
 
 
 func _process(_delta: float) -> void:

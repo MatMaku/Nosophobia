@@ -11,6 +11,30 @@ Actualizar este documento en la misma tarea cuando cambien significativamente
 responsabilidades, escenas principales, comunicación, ownership o dependencias.
 Los cambios internos pequeños que no alteran la arquitectura no requieren actualizarlo.
 
+## Visual perspective
+
+El juego usa perspectiva cenital ortográfica perfecta a 90°, nunca top-down 3/4.
+Muros, puertas y ventanas deben seguir siendo válidos bajo cualquier rotación 2D:
+no contienen caras verticales ni sombreado direccional para fingir una cámara inclinada.
+El grosor de Line2D y su volumen LOS se extienden simétricamente a ambos lados del path.
+La base canónica de muro es wall_mid_tile; puerta usa door_leaf y ventana usa
+window_intact/cracked/broken, con shards aparte. La galería y README de sprites_codex
+documentan las referencias conservadas; las piezas mid/cap reemplazadas ya no existen.
+
+### Resolución y nitidez
+
+Base de diseño: 1920×1080; canvas_items + aspect expand, factor 1 y escalado fraccional
+permitido. Se renderiza a la resolución de ventana, no a un viewport de baja resolución
+reescalado. En aspectos distintos se amplía el área lógica sin deformar intencionadamente
+los sprites. Camera2D conserva zoom 2.5: no se cambió el encuadre para corregir texto.
+
+Los Labels de zonas/HP son world-space, escala 1 y fuente de 10–12 px; el zoom ampliaba
+sus glifos rasterizados y producía borrosidad. La fuente predeterminada ahora usa MSDF
+(gui/theme/default_font_multichannel_signed_distance_field), sin cambiar tamaños.
+HUD/recarga siguen en CanvasLayer 3 y no heredan zoom. HDR 2D permanece desactivado;
+filtro global lineal, excepción nearest del arte manual CharacterVisual y máscara LOS.
+No se forzaron mipmaps ni escalado entero global: el proyecto mezcla arte suave y pixelado.
+
 ## Project structure
 
 ```text
@@ -19,11 +43,10 @@ scenes/
   prefabs/player/player.tscn
   prefabs/enemies/enemy_base.tscn
   player/character_visual.tscn
-  player/player_vision.tscn
   world/movement_test.tscn
+  world/{basic_fog_2d, vision_blocker_2d}.tscn
   prefabs/lighting/decorative_light_2d.tscn
   prefabs/world/{level_boundary_2d, door_2d, window_2d}.tscn
-  world/visibility_fog.tscn
   prefabs/items/{world_item, key_world_item}.tscn
   ui/inventory_ui.tscn
   ui/inventory_slot.tscn
@@ -32,10 +55,11 @@ scenes/
 scripts/
   app/main.gd
   player/{wheelchair_body, wheelchair_input, wheelchair_debug, pickup_interactor}.gd
-  player/{character_visual, player_vision}.gd
+  player/character_visual.gd
   enemies/enemy_base.gd
   combat/{health_component, firearm_definition}.gd
   world/{movement_test, decorative_light_2d, level_boundary_2d, door_2d, window_2d}.gd
+  world/{basic_fog_2d, visibility_mask_2d, vision_blocker_2d, fog_appearance}.gd
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
   ui/{cursor_controller, inventory_ui, inventory_slot, world_drop_target}.gd
@@ -46,7 +70,7 @@ docs/architecture.md
 
 ## Scene ownership
 
-- **Main** compone MovementTest, CursorController, fog/VFX y un CanvasLayer HUD con
+- **Main** compone MovementTest, CursorController, VFX y un CanvasLayer HUD con
   InventoryUI, WeaponReloadUI y WorldDropTarget. Inyecta los modelos y coordina
   handoff de input y transferencias de drop sin poseer reglas de inventario.
 - **MovementTest** es el level playground actual. Su `.tscn` posee explícitamente
@@ -70,7 +94,7 @@ docs/architecture.md
 - **WorldDropTarget** es un Control fullscreen ubicado detrás de las UIs. Solo
   acepta drags nacidos en slots normales; los clicks comunes pasan sin consumirse.
 - **DecorativeLight2D** compone un PointLight2D con sombra y genera su máscara
-  irregular al iniciar. Es iluminación visual reutilizable y no altera PlayerVision.
+  irregular al iniciar. Es iluminación visual reutilizable sin reglas de visibilidad.
 
 ## Script responsibilities
 
@@ -85,7 +109,7 @@ docs/architecture.md
 | weapon_aim_visual.gd | Orientar AimUpperBody/AimMuzzle y desplazar el torso por recoil. | Interpolar una segunda dirección de aim. |
 | pickup_interactor.gd | Poseer Inventory/Equipment, validar distancia y recoger cantidades. | Dibujar UI o mover la silla. |
 | item_definition.gd | Datos estáticos, máximo de stack, equipo y key_id opcional. | Estado mutable por instancia. |
-| item_stack.gd | Valor runtime inmutable: definición y cantidad. | UI o drag preview. |
+| item_stack.gd | Definición/cantidad inmutables y FirearmState propio por arma. | UI o drag preview. |
 | inventory.gd | Slots, stacks, inserción, merge, swap y extracción verificada. | SceneTree, UI o posición del jugador. |
 | equipment.gd | Un arma equipada y transferencias verificadas con Inventory. | Labels, iconos o nodos UI. |
 | world_item.gd | Mostrar el item, conservar stack runtime y solicitar pickup. | Inventario o búsqueda de Player. |
@@ -98,15 +122,20 @@ docs/architecture.md
 | door_2d.gd | Estados de latch/key lock, transición breve y hoja física con bisagra. | Buscar Inventory, UI o Player. |
 | window_2d.gd | Durabilidad, estados visuales y separación entre barrera corporal e hitscan. | Oclusión de visión, shards físicos o paso de actores. |
 | movement_test.gd | Referencias de composición y spawn de drops runtime. | Generar la demo o dibujar muros. |
-| player_vision.gd | Construir una máscara continua de visión y sincronizar sus occluders. | Iluminación decorativa o colisiones. |
+| basic_fog_2d.gd | LOS físico y malla exterior para gris. | IA, memoria explorada o excepciones de geometría. |
+| visibility_mask_2d.gd | Rasterizar esa malla y recortar entidades por píxel. | Calcular otra LOS o cambiar física. |
+| vision_blocker_2d.gd | Contornos físicos exclusivos de visión. | Colisión corporal o iluminación. |
+| fog_appearance.gd | Elegir si los visuales de entorno reciben gris. | Modificar blockers o revelar entidades. |
 
 ## Data models
 
-- **ItemDefinition**: Resource con display_name, icon, max_stack_size, key_id opcional
-  y EquipmentSlotType (NONE o WEAPON). Se trata como inmutable durante el juego.
+- **ItemDefinition**: Resource con display_name, icon, max_stack_size, key_id opcional,
+  EquipmentSlotType (NONE o WEAPON), FirearmDefinition y escenas de pose/recarga.
+  Se trata como inmutable durante el juego.
   No tiene balas cargadas, durabilidad, efectos ni estado particular.
-- **ItemStack**: RefCounted inmutable con ItemDefinition y quantity. Cada stack
-  cumple 1 <= quantity <= max_stack_size.
+- **ItemStack**: RefCounted con ItemDefinition y quantity inmutables. Cada stack
+  cumple 1 <= quantity <= max_stack_size. Un arma posee además su propio FirearmState
+  mutable: cámaras cargadas, nunca almacenadas en la definición compartida.
 - **Inventory**: RefCounted independiente del SceneTree, creado por cada
   PickupInteractor. Mantiene un array privado de ItemStack
   (null significa slot vacío). La capacidad se fija al crearlo; el Inspector del
@@ -204,7 +233,7 @@ Main traduce hover de UI, WorldItem y WheelchairInput
              Input.set_custom_mouse_cursor
 ```
 
-Las tres texturas y hotspots se asignan al CursorController en
+Las cuatro texturas (incluida AIMING) y hotspots se asignan al CursorController en
 scenes/app/main.tscn desde el Inspector. Las texturas actuales están en
 Sprites/Cursor/. El Button Mochila admite su propiedad icon nativa desde
 InventoryUI.tscn. Paneles, tamaños, labels e icon presentation se editan desde
@@ -342,65 +371,96 @@ Los valores del Inspector de WeaponAim están en grados y Hz: drift sano/crític
 set_health_ratio(value) acepta 0..1 y parte de 1.0. Solo escala amplitudes: la Curve
 opcional health_sway_curve recibe 1 - health_ratio; sin Curve usa lesión al cubo.
 Este es el punto para conectar salud del Player posteriormente; HealthComponent
-existe actualmente solo en EnemyBase, sin conexión al sway del jugador.
+existe en EnemyBase y Window2D, sin conexión al sway del jugador.
 
 RMB empieza desde forward, con sway cero. Soltar RMB, bloquear input o cambiar equipo
 reinicia los ángulos y cancela/restaura el recoil visual. El recoil sigue siendo un
 offset de posición y no altera el seguimiento. Cursor inmediato, spread por pellet
 y recoil físico permanecen independientes; todos los pellets comparten el mismo final.
 
-## Decorative lighting and visibility
+## Decorative lighting
 
-DecorativeLight2D continúa siendo PointLight2D con sombras. Su script crea una textura
-128x128 una vez al iniciar: center_intensity limita el centro, edge_hardness controla
-un falloff radial continuo y noise_amount/noise_scale deforman sutilmente el borde.
-No hay escalones de alpha, por lo que la luz integra el sprite sin lavarlo. noise_speed
-anima una variación mínima; color, energy, escala y sombras siguen por instancia.
+DecorativeLight2D utiliza PointLight2D con sombras y una textura radial irregular.
+center_intensity, edge_hardness y noise_* controlan su apariencia por instancia.
+Las luces y los visuales receptores utilizan máscara 2; los LightOccluder de paredes
+y puertas conservan únicamente esa máscara. Las ventanas no ocluyen luz.
 
-Las luces decorativas iluminan CanvasItems receptores en la máscara visual 2 y sus
-occluders usan esa misma máscara. Los visuales sólidos de LevelBoundary2D y Door2D
-permanecen en máscara 1: conservan su color base sin recibir DecorativeLight, mientras
-sus LightOccluder mantienen máscara 3 y continúan bloqueando tanto luz (bit 2) como
-PlayerVision (bit 1). Window2D conserva máscara visual 2 y no posee occluder, por lo
-que la luz y la visión atraviesan el cristal. PlayerVision renderiza su propia máscara en un
-SubViewport separado usando copias de nodos occluder. Las geometrías sin grosor
-comparten su Resource; muros y puertas poseen una copia de visión derivada.
-VisibilityFog compone esa máscara sobre el mundo antes de Grain y HUD.
-Por ello una lámpara nunca revela zonas que PlayerVision mantiene ocultas.
+La iluminación del mundo se compone antes del gris de zonas sin LOS: una lámpara
+no revela entidades ocultas. GrainOverlay y HUD se dibujan después, independientes.
 
-### Continuous vision mask
+### Oscuridad de cámara
 
-La unificación de las antiguas luces periférica y frontal eliminó su mezcla separada,
-pero no el escalón sobre paredes. La comparación con la misma cámara y geometría
-identificó ese defecto en el filtrado PCF13 de sombras: al desactivarlo desaparece.
-VisionLight usa ahora sombras sin PCF; el suavizado limitado se realiza en pantalla.
+Main posee CameraDarkness (CanvasLayer 1), después del mundo/fog y antes de grain
+y HUD. Su ColorRect negro aplica una caída smoothstep en píxeles de pantalla,
+centrada en la proyección del Player. No consulta paredes ni altera su forma
+por geometría. No hay PointLight de proximidad: AmbientDarkness vuelve a su
+valor base, y la atmósfera oscura se aplica exclusivamente en esta capa.
 
-PlayerVision ahora genera una sola textura de 256×256 al iniciar y la asigna a un único
-VisionLight. Para cada ángulo interpola continuamente entre `peripheral_radius` y
-`forward_radius`; `forward_shape_power` controla la forma frontal y `edge_softness`
-aplica una única caída exterior. Por tanto, cercanía, periferia y alcance frontal son
-una sola superficie antes de que LightOccluder2D la recorte:
+Main asigna explícitamente viewer, visibility_mask y lights en la escena.
+Las lámparas habilitadas alivian la oscuridad alrededor de su posición proyectada,
+aunque su centro quede fuera de la LOS o de pantalla: importa su área de influencia.
+Ese alivio se recorta por píxel con la máscara LOS existente: solo actúa dentro
+de la visión, nunca fuera. No se comprueba la visibilidad del centro de la lámpara.
+El alivio radial aproxima su alcance usando textura, escala y energía; el color
+y las sombras reales continúan a cargo de PointLight2D. No es una segunda máscara
+LOS: nunca revela enemigos detrás de paredes. No genera otra máscara ni raycasts.
+El halo base de cámara no se deforma por occluders; solo se recorta el alivio de luces.
+
+Inspector Main/CameraDarkness: clear_radius (0.18) y dark_radius (0.75), fracciones
+de la altura de pantalla; darkness (0.98), lamp_relief (1) y lista lights (hasta 32).
+Al cambiar zoom, el halo conserva tamaño de pantalla y las lámparas acompañan
+su tamaño en mundo. Los transforms se sincronizan antes del render; sin raycasts
+adicionales, nuevas luces ni SubViewports. Para una nueva lámpara del nivel,
+asignar su PointLight2D a lights. Puertas excluidas del gris siguen recibiendo
+esta oscuridad de cámara.
+
+## Fog actual: escenario conocido y entidades recortadas
+
+Main posee BasicFog2D e inyecta Player y los VisionBlocker2D del nivel.
+256 rayos fijos más esquinas/intersecciones ±epsilon producen una única LOS:
+primer impacto contra el volumen completo de paredes/puertas, sin tolerancia.
+Window2D no bloquea visión. No hay memoria explorada ni influencia de las luces.
 
 ```text
-radio periférico + alcance angular frontal
-                    |
-                    v
-       una textura continua de visión
-                    |
-        un único PointLight2D + sombras
-                    |
-             SubViewport aislado
-                    |
-          VisibilityFog compositor
+Player -> physics LOS + vision_radius -> polígono ordenado
+    |-> malla exterior -> escenario gris (z=99)
+    |-> misma malla -> VisibilityMask -> recorte por píxel de vision_subject
+Escenario -> gris -> geometrías excluidas (z=100) -> Player (z=101) -> grain/HUD
 ```
 
-El SubViewport conserva la resolución real de pantalla y el mismo canvas transform de
-la cámara. El compositor filtra la máscara final con nueve muestras ponderadas y radio
-`edge_filter_pixels` de 1.5 píxeles, configurable en el material de VisibilityFog.
-Toma el mínimo entre la muestra original y el resultado filtrado: suaviza hacia dentro
-sin revelar píxeles ocultos. El gradiente exterior continuo se conserva, sin mezclar
-capas ni difuminar el mundo. Lo no visible conserva alpha de fog 1; la iluminación
-decorativa continúa fuera de este World2D aislado.
+El escenario siempre existe visualmente; unseen_environment desatura y oscurece
+solo fuera de LOS. EnemyBase y WorldItem pertenecen al grupo vision_subject:
+VisibilityMask aplica un único material compartido a sus CanvasItems (incluidos
+labels y drops runtime). Cada píxel consulta la máscara binaria, no el centro
+del objeto. No se cambia visible ni se añaden blur, dilatación o fades.
+Los visuales actuales de este grupo no tienen otros shaders; un visual con shader
+propio necesitará integrar el recorte, no sustituirlo silenciosamente.
+
+La máscara vive en un SubViewport aislado, sin cámara adicional. Copia la malla
+durante física y sincroniza resolución/canvas con el viewport principal antes del
+render. Usa filtrado nearest. No calcula otra LOS ni interpola impactos.
+Main inyecta en WorldItem la consulta puntual para validar el mouse sobre la
+fracción visible. Física, daño y reglas de inventario permanecen separados.
+
+Inspector Main/BasicFog2D: vision_radius (650), ray_count (256), unseen_brightness
+(0.45), show_rays. last_update_usec mide CPU, no el coste GPU de la máscara.
+El debug no redibuja mientras está desactivado; los buffers de la malla se
+dimensionan una vez por actualización, sin arrays temporales por triángulo.
+
+### Elección de geometrías afectadas por gris
+
+Door2D, LevelBoundary2D y Window2D poseen FogAppearance. Activar Hijos editables,
+seleccionar ese nodo y cambiar affected_by_fog. Puertas: false por defecto;
+paredes/ventanas: true. visuals son referencias explícitas a los dibujos afectados.
+Para otra geometría, añadir un Node con scripts/world/fog_appearance.gd y asignar
+sus visuales. No usarlo para enemigos/items, que pertenecen a vision_subject.
+
+La exclusión dibuja esos visuales después del gris (z absoluto 100), conserva
+material, textura y luz y restaura su orden original al reactivar el filtro.
+Es una capa de entorno en primer plano: los visuales excluidos se superponen al
+mundo normal donde coincidan. Player y HUD siguen encima. No cambia ni desactiva
+VisionBlocker, colisiones, sombras decorativas o el polígono LOS; una puerta sin
+gris continúa ocultando por píxel al enemigo que esté detrás.
 
 ## EnemyBase and damage
 
@@ -424,8 +484,7 @@ aplica FirearmDefinition.damage al collider real; ShotResult conserva ese mismo
 hit para tracer/impact. Valores iniciales: revólver 25 por bala; escopeta 10 por
 pellet (4 pellets existentes). No cambia aim, spread ni recoil.
 EnemyBase usa capa/máscara física 1 como Player/mundo y máscara visual 2 para
-recibir luz decorativa. VisibilityFog sigue recortando su presentación por píxel;
-el enemigo no modifica ni amplía PlayerVision.
+recibir luz decorativa. No controla visibilidad del mundo.
 
 ## Level prefabs
 
@@ -444,7 +503,7 @@ de modificar, por ejemplo, la geometría de una CollisionShape2D.
 WorldItem expone definition y quantity en la raíz. Conectar pickup_requested al
 PickupInteractor del Player desde la composición del nivel, como MovementTest.
 Player mantiene las conexiones externas de Main; colocarlo no reemplaza esa
-composición de HUD, Equipment, apuntado y fog. No hay búsquedas globales nuevas.
+composición de HUD, Equipment y apuntado. No hay búsquedas globales nuevas.
 
 ### LevelBoundary2D
 
@@ -456,34 +515,41 @@ No hay que activar Hijos editables ni editar las geometrías derivadas.
 LevelBoundary2D.points (única geometría editable)
     ├── Line2D raíz: visual de pared
     ├── Collision/Polygon: ConcavePolygonShape2D de segmentos, capa/máscara física 1
-    └── LightOccluder: máscara 3 (PlayerVision + luz decorativa)
+    ├── LightOccluder: máscara 2 (luz decorativa)
+    └── VisionBlocker: contorno completo de points + width, capa física 4 (solo LOS)
 ```
 
 El script @tool sincroniza al redibujar por una edición de puntos; al iniciar
 runtime construye una vez, sin _process. Cada instancia posee su propio recurso
-occluder. Main descubre el LightOccluder al componer el nivel y PlayerVision utiliza
-su eje central para la máscara de fog.
+occluder para las sombras de las luces decorativas.
 Width, Default Color, Texture y Texture Mode son propiedades nativas de Line2D;
 Tile y Texture Repeat están configurados para textura repetible. Collision Enabled
-y Occlusion Enabled permiten desactivar cada salida. Width es solo visual: la
-colisión sigue el eje del perímetro, no su grosor. Closed cierra último→primero;
+y Occlusion Enabled permiten desactivar cada salida. Width controla visual y volumen
+LOS y colisión corporal/hitscan: ambos reciben los mismos contornos completos,
+sin una barrera física adicional en el eje. Collision es el único cuerpo sólido;
+VisionBlocker es un Area2D de capa 4 que solo consultan los rayos de visión.
+Los contornos interior/exterior de un muro cerrado delimitan su espesor, no dos muros.
+La habitación encerrada permanece hueca. LightOccluder sigue separado para luz decorativa.
+El volumen LOS admite el estilo actual: ancho uniforme, Sharp con límite 2 y caps
+None. El editor avisa si se eligen curvas de ancho/caps/joins distintos, que aún
+no están soportados por esa derivación.
+Mantener Scale (1, 1), editar Points para la forma y Width para el grosor; el editor
+avisa si se escala el nodo. La textura canónica es uniforme a lo largo del tramo:
+sin juntas transversales que los UV de Line2D puedan sesgar al unir esquinas.
+Closed cierra último→primero;
 desactivarlo crea un tramo abierto desde dos puntos. Admite concavidad y no genera
 geometría dinámica durante gameplay. Los huecos se construyen terminando un tramo,
 colocando Door2D/Window2D y continuando con otro tramo.
+Las paredes llegan a ambos extremos de la puerta cerrada, sin rendijas visuales.
+Door2D.collision_end_insets recorta solo la colisión sólida de la hoja: X en la
+bisagra, Y en la punta (10 y 1 unidades por defecto, hoja 96×12 y giro ±100°).
+La forma se desplaza para respetar ambos recortes, sin mover el pivote ni el sprite.
+Visual, interacción y VisionBlocker mantienen la hoja completa; no se altera fog.
+La tolerancia también afecta hitscan, que usa la colisión sólida: los extremos
+recortados no reciben impactos. Revisar insets al cambiar grosor de muro o giro;
+no hay excepciones que permitan a toda la puerta atravesar cualquier pared.
 
-PlayerVision conserva el occluder original para DecorativeLight2D. En su SubViewport,
-cada segmento con `vision_occlusion_width` genera un rectángulo centrado en su eje,
-con espesor visual multiplicado por `occlusion_thickness_ratio` de PlayerVision
-(Inspector: Occlusion Thickness). 0 conserva la línea original; 0.5, valor inicial,
-ocupa la mitad del espesor; 1 ocupa el espesor completo. No alarga los extremos ni
-depende del lado desde donde mira el jugador. La copia acompaña el transform de la
-puerta sin modificar su oclusión decorativa. Las ventanas siguen sin ocluir visión.
-Los extremos de las líneas centrales
-coincidentes reciben un puente de seguridad de 1 unidad solo si siguen alineados
-dentro de 4 grados: puerta cerrada y pared son continuas, pero el puente desaparece
-al abrir. La máscara mantiene atlas 4096, sin PCF, y el gradiente angular continuo
-descrito arriba. El pequeño filtro final en pantalla nunca aumenta la visibilidad
-original. Colisión, disparos y sombras decorativas no cambian.
+Los occluders derivados se utilizan únicamente para sombras decorativas.
 
 ### Door2D, Window2D and playground
 
@@ -499,9 +565,12 @@ LATCHED --tween corto--> OPEN
 
 La apertura inicial elige el signo opuesto al Player en coordenadas locales y,
 al terminar, solo fuerzas/colisiones mueven la hoja. El relatch exige cercanía a
-cero y baja velocidad angular. Desbloquear con llave es permanente para esa instancia:
+cero y baja velocidad angular. Solo la hoja abierta revisa relatch en cada tick;
+trabada o durante la transición no ejecuta ese seguimiento.
+Desbloquear con llave es permanente para esa instancia:
 los cierres posteriores vuelven a LATCHED, nunca a KEY_LOCKED.
-La hoja bloquea cuerpos, balas, PlayerVision y luz según su transform real.
+La hoja bloquea cuerpos, balas y luz según su transform real. Su VisionBlocker hijo
+usa el tamaño completo de la hoja y acompaña toda apertura, sin estados de visibilidad.
 Inspector expone interaction_distance, unlatched/max angle, opening_time, umbrales
 de relatch, key_id, consume_key_on_unlock, rattle y leaf_size; masa y angular_damp
 son propiedades nativas de DoorBody, y la textura es la propiedad nativa de Visual.
@@ -533,3 +602,18 @@ instancia. Muros, puerta normal, puerta con llave, llaves de prueba, ventana,
 tres luces configuradas por instancia, Player,
 enemigos e items están guardados como nodos/instancias en ese `.tscn`; ningún script
 crea contenido permanente de la demo.
+
+Environment agrupa Walls, Doors, Windows y TestLabels. Sus transforms son identidad;
+la organización no cambia ubicaciones ni geometría. Player, items, enemigos y luces
+conservan sus rutas raíz para no alterar la composición ni la búsqueda de drops.
+Las zonas físicas existentes se mantienen: objetos/combate abajo, puerta y vidrio en
+la división central, muros/esquinas/diagonales arriba y a la derecha.
+
+Todos los muros del playground heredan el mismo grosor 16 del prefab, sin escalas
+por instancia. IrregularWall es un tramo abierto que conecta con el perímetro:
+no duplica sus lados superior/derecho. La zona superior izquierda incluye muros
+horizontales consecutivos, uno vertical y uno diagonal. El piso termina en el path
+del perímetro, debajo de su espesor, sin una franja de baldosas exterior que simule
+otra cara de pared. EnemyBehindThickWall y el item
+VisionBehindWall permiten comprobar la ocultación de contenido detrás del muro.
+La puerta existente permite recorrer continuamente cierre, apertura parcial y 90°.

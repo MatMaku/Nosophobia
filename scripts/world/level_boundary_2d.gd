@@ -15,9 +15,11 @@ extends Line2D
 
 @onready var _collision: CollisionShape2D = $Collision/Polygon
 @onready var _occluder: LightOccluder2D = $LightOccluder
+@onready var _vision_blocker: VisionBlocker2D = $VisionBlocker
 
 var _last_points := PackedVector2Array()
 var _last_closed: bool = false
+var _last_width: float = -1.0
 
 
 func _ready() -> void:
@@ -34,25 +36,29 @@ func _draw() -> void:
 
 
 func _sync_geometry(force: bool = false) -> void:
-	_occluder.set_meta("vision_occlusion_width", width)
 	if material is ShaderMaterial:
 		material.set_shader_parameter("wall_width", width)
-	if force or points != _last_points or closed != _last_closed:
+	if force or points != _last_points or closed != _last_closed or width != _last_width:
 		_last_points = points
 		_last_closed = closed
+		_last_width = width
+		var contours: Array[PackedVector2Array] = []
+		if points.size() >= (3 if closed else 2) and width > 0.0:
+			contours = Geometry2D.offset_polyline(points, width * 0.5,
+				Geometry2D.JOIN_MITER,
+				Geometry2D.END_JOINED if closed else Geometry2D.END_BUTT)
+		# One wall outline: bodies/hitscan and LOS meet the same visible surface.
 		var segments := PackedVector2Array()
-		if points.size() >= (3 if closed else 2):
-			for index in points.size() - 1:
-				segments.append(points[index])
-				segments.append(points[index + 1])
-			if closed:
-				segments.append(points[-1])
-				segments.append(points[0])
+		for contour in contours:
+			for index in contour.size():
+				segments.append(contour[index])
+				segments.append(contour[(index + 1) % contour.size()])
 		_collision.shape.segments = segments
+		_vision_blocker.set_contours(contours)
 		_occluder.occluder.polygon = points
 		_occluder.occluder.closed = closed
 		_occluder.occluder.cull_mode = OccluderPolygon2D.CULL_DISABLED
-		update_configuration_warnings()
+	update_configuration_warnings()
 	_sync_enabled()
 
 
@@ -67,4 +73,10 @@ func _sync_enabled() -> void:
 func _get_configuration_warnings() -> PackedStringArray:
 	if points.size() < (3 if closed else 2):
 		return ["Use three points for a closed boundary, or two for an open wall."]
+	if not scale.is_equal_approx(Vector2.ONE):
+		return ["Keep Scale at (1, 1). Edit Points and Width for consistent wall thickness."]
+	if width_curve != null or joint_mode != LINE_JOINT_SHARP \
+			or begin_cap_mode != LINE_CAP_NONE or end_cap_mode != LINE_CAP_NONE \
+			or not is_equal_approx(sharp_limit, 2.0):
+		return ["Vision volume supports uniform Width, Sharp joints (limit 2) and None caps."]
 	return []

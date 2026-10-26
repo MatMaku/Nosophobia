@@ -5,29 +5,90 @@
 [ext_resource type="PackedScene" uid="uid://6wmxmowbqwle" path="res://scenes/prefabs/items/world_item.tscn" id="3"]
 [ext_resource type="Resource" path="res://resources/items/test_item.tres" id="4"]
 [ext_resource type="Resource" path="res://resources/items/revolver_ammo.tres" id="5"]
+[ext_resource type="Shader" uid="uid://cyra0f3jjh75j" path="res://shaders/world/wall_slice.gdshader" id="5_ndavc"]
 [ext_resource type="Resource" path="res://resources/items/revolver_item.tres" id="6"]
 [ext_resource type="Resource" path="res://resources/items/shotgun_shell.tres" id="7"]
 [ext_resource type="Resource" path="res://resources/items/double_barrel_shotgun_item.tres" id="8"]
 [ext_resource type="PackedScene" uid="uid://bxhrfdpe6ethy" path="res://scenes/prefabs/lighting/decorative_light_2d.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/enemies/enemy_base.tscn" id="10"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/world/level_boundary_2d.tscn" id="11"]
+[ext_resource type="PackedScene" uid="uid://mkbmqh0wu8yu" path="res://scenes/prefabs/world/level_boundary_2d.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/world/door_2d.tscn" id="12"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/world/window_2d.tscn" id="13"]
 [ext_resource type="PackedScene" path="res://scenes/prefabs/items/key_world_item.tscn" id="14"]
 [ext_resource type="Resource" path="res://resources/items/wrong_test_key.tres" id="15"]
-[ext_resource type="Texture2D" path="res://sprites_codex/environment/floors/floor_clinic_tile.svg" id="16"]
+[ext_resource type="Texture2D" uid="uid://ch7ho8plj86pm" path="res://sprites_codex/environment/floors/floor_clinic_tile.svg" id="16"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1o6y8"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_uqnya"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_u4mhy"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ipyep"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ltl3u"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i1gpj"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cisgs"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_khirq"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kkkc4"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5g4i2"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
 
 [node name="MovementTest" type="Node2D" unique_id=1179780724 node_paths=PackedStringArray("doors")]
 light_mask = 2
 script = ExtResource("2")
-doors = Array[NodePath]([NodePath("Environment/Door"), NodePath("Environment/LockedDoor")])
+doors = [NodePath("Environment/Doors/Door"), NodePath("Environment/Doors/LockedDoor")]
 
-[node name="Floor" type="Polygon2D" parent="."]
-z_index = -10
+[node name="Floor" type="Polygon2D" parent="." unique_id=14675727]
 light_mask = 2
-polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 720, 0, 720)
+z_index = -10
 texture_repeat = 2
 texture = ExtResource("16")
+polygon = PackedVector2Array(24, 24, 1128, 24, 1128, 696, 24, 696)
 
 [node name="AmbientDarkness" type="CanvasModulate" parent="." unique_id=1990364449]
 color = Color(0.65, 0.65, 0.7, 1)
@@ -35,77 +96,106 @@ color = Color(0.65, 0.65, 0.7, 1)
 [node name="Player" parent="." unique_id=1778468229 instance=ExtResource("1")]
 position = Vector2(260, 540)
 
-[node name="Environment" type="Node2D" parent="."]
+[node name="Environment" type="Node2D" parent="." unique_id=1392907223]
 
-[node name="Boundary" parent="Environment" instance=ExtResource("11")]
+[node name="Walls" type="Node2D" parent="Environment" unique_id=760452602]
+
+[node name="Boundary" parent="Environment/Walls" unique_id=925241306 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_1o6y8")
 points = PackedVector2Array(24, 24, 1128, 24, 1128, 696, 24, 696)
 
-[node name="DoorWallLeft" parent="Environment" instance=ExtResource("11")]
+[node name="DoorWallLeft" parent="Environment/Walls" unique_id=1778867708 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_uqnya")
 points = PackedVector2Array(24, 380, 260, 380)
 closed = false
 
-[node name="Door" parent="Environment" instance=ExtResource("12")]
-position = Vector2(260, 380)
-
-[node name="LockedDoor" parent="Environment" instance=ExtResource("12")]
-position = Vector2(650, 540)
-key_id = &"test_room"
-
-[node name="DoorWallRight" parent="Environment" instance=ExtResource("11")]
+[node name="DoorWallRight" parent="Environment/Walls" unique_id=1370360734 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_u4mhy")
 points = PackedVector2Array(356, 380, 456, 380)
 closed = false
 
-[node name="Window" parent="Environment" instance=ExtResource("13")]
-position = Vector2(504, 380)
-
-[node name="WindowShootingTest" parent="Environment" instance=ExtResource("13")]
-position = Vector2(530, 550)
-pane_size = Vector2(128, 20)
-
-[node name="GlassTestLabel" type="Label" parent="Environment"]
-light_mask = 2
-offset_left = 466.0
-offset_top = 580.0
-text = "VIDRIO: RODEAR + DISPARAR DESDE 4 LADOS"
-theme_override_font_sizes/font_size = 10
-mouse_filter = 2
-
-[node name="WindowWallRight" parent="Environment" instance=ExtResource("11")]
+[node name="WindowWallRight" parent="Environment/Walls" unique_id=2080995158 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_ipyep")
 points = PackedVector2Array(552, 380, 1128, 380)
 closed = false
 
-[node name="IrregularWall" parent="Environment" instance=ExtResource("11")]
-position = Vector2(900, 180)
-scale = Vector2(0.953125, 0.9204546)
-points = PackedVector2Array(-240, -160, 240, -160, 240, 160, -206.6885, 192.2963, -191.99997, 36.938263, -182.55734, -90.17284)
+[node name="IrregularWall" parent="Environment/Walls" unique_id=613014248 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_ltl3u")
+points = PackedVector2Array(1128, 327, 703, 357, 717, 214, 726, 97, 671, 24)
+closed = false
 
-[node name="Corner" parent="Environment" instance=ExtResource("11")]
+[node name="Corner" parent="Environment/Walls" unique_id=2076688202 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_i1gpj")
 points = PackedVector2Array(800, 540, 800, 640, 1020, 640)
 closed = false
 
-[node name="ItemsLabel" type="Label" parent="Environment"]
+[node name="ThickHorizontalWall" parent="Environment/Walls" unique_id=1871750561 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_cisgs")
+points = PackedVector2Array(100, 220, 340, 220)
+closed = false
+
+[node name="HiddenParallelWall" parent="Environment/Walls" unique_id=1678339545 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_khirq")
+points = PackedVector2Array(100, 140, 340, 140)
+closed = false
+
+[node name="ThickVerticalWall" parent="Environment/Walls" unique_id=1810680098 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_kkkc4")
+points = PackedVector2Array(400, 80, 400, 260)
+closed = false
+
+[node name="ThickDiagonalWall" parent="Environment/Walls" unique_id=853875355 instance=ExtResource("11")]
+material = SubResource("ShaderMaterial_5g4i2")
+points = PackedVector2Array(470, 250, 590, 130)
+closed = false
+
+[node name="Doors" type="Node2D" parent="Environment" unique_id=639599402]
+
+[node name="Door" parent="Environment/Doors" unique_id=1377286494 instance=ExtResource("12")]
+position = Vector2(260, 380)
+
+[node name="LockedDoor" parent="Environment/Doors" unique_id=1740199559 instance=ExtResource("12")]
+position = Vector2(650, 540)
+key_id = &"test_room"
+
+[node name="Windows" type="Node2D" parent="Environment" unique_id=1619099805]
+
+[node name="Window" parent="Environment/Windows" unique_id=53770579 instance=ExtResource("13")]
+position = Vector2(504, 380)
+
+[node name="WindowShootingTest" parent="Environment/Windows" unique_id=1540229093 instance=ExtResource("13")]
+position = Vector2(530, 550)
+pane_size = Vector2(128, 20)
+
+[node name="TestLabels" type="Node2D" parent="Environment" unique_id=1827141895]
+
+[node name="GlassTestLabel" type="Label" parent="Environment/TestLabels" unique_id=1330647361]
+light_mask = 2
+offset_left = 466.0
+offset_top = 580.0
+theme_override_font_sizes/font_size = 10
+text = "VIDRIO: RODEAR + DISPARAR DESDE 4 LADOS"
+
+[node name="ItemsLabel" type="Label" parent="Environment/TestLabels" unique_id=1877139522]
 light_mask = 2
 offset_left = 140.0
 offset_top = 650.0
-text = "ITEMS / EQUIPAR / RECARGAR"
 theme_override_font_sizes/font_size = 12
-mouse_filter = 2
+text = "ITEMS / EQUIPAR / RECARGAR"
 
-[node name="DoorLabel" type="Label" parent="Environment"]
+[node name="DoorLabel" type="Label" parent="Environment/TestLabels" unique_id=910986218]
 light_mask = 2
 offset_left = 265.0
 offset_top = 402.0
-text = "PUERTA: CLICK + EMPUJAR"
 theme_override_font_sizes/font_size = 10
-mouse_filter = 2
+text = "PUERTA: CLICK + EMPUJAR"
 
-[node name="WindowLabel" type="Label" parent="Environment"]
+[node name="WindowLabel" type="Label" parent="Environment/TestLabels" unique_id=114179297]
 light_mask = 2
 offset_left = 460.0
 offset_top = 402.0
-text = "VIDRIO: 75 HP / VER, NO PASAR"
 theme_override_font_sizes/font_size = 10
-mouse_filter = 2
+text = "VIDRIO: 75 HP / VER, NO PASAR"
 
 [node name="NearItem" parent="." unique_id=866608588 instance=ExtResource("3")]
 position = Vector2(320, 540)
@@ -137,10 +227,10 @@ definition = ExtResource("6")
 position = Vector2(235, 620)
 definition = ExtResource("8")
 
-[node name="TestRoomKey" parent="." instance=ExtResource("14")]
+[node name="TestRoomKey" parent="." unique_id=49692887 instance=ExtResource("14")]
 position = Vector2(300, 590)
 
-[node name="WrongKey" parent="." instance=ExtResource("14")]
+[node name="WrongKey" parent="." unique_id=1601063100 instance=ExtResource("14")]
 position = Vector2(350, 590)
 definition = ExtResource("15")
 
@@ -163,7 +253,7 @@ definition = ExtResource("4")
 [node name="WarmLamp" parent="." unique_id=805576506 instance=ExtResource("9")]
 position = Vector2(320, 565)
 
-[node name="PointLight2D" parent="WarmLamp" index="0"]
+[node name="PointLight2D" parent="WarmLamp" index="0" unique_id=809296133]
 color = Color(1, 0.8, 0.5, 1)
 energy = 1.2
 texture_scale = 1.5
@@ -171,14 +261,14 @@ texture_scale = 1.5
 [node name="HiddenLamp" parent="." unique_id=261051534 instance=ExtResource("9")]
 position = Vector2(260, 175)
 
-[node name="PointLight2D" parent="HiddenLamp" index="0"]
+[node name="PointLight2D" parent="HiddenLamp" index="0" unique_id=809296133]
 color = Color(1, 0.35, 0.25, 1)
 energy = 0.5
 
 [node name="CoolLamp" parent="." unique_id=1978840213 instance=ExtResource("9")]
 position = Vector2(504, 330)
 
-[node name="PointLight2D" parent="CoolLamp" index="0"]
+[node name="PointLight2D" parent="CoolLamp" index="0" unique_id=809296133]
 color = Color(0.4, 0.65, 1, 1)
 energy = 1.8
 texture_scale = 1.5
@@ -198,6 +288,9 @@ max_health = 200.0
 [node name="EnemyBase" parent="." unique_id=298714688 instance=ExtResource("10")]
 position = Vector2(149, 451)
 
+[node name="EnemyBehindThickWall" parent="." unique_id=520648572 instance=ExtResource("10")]
+position = Vector2(240, 180)
+
 [connection signal="pickup_requested" from="NearItem" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="SecondItem" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="FarItem" to="Player/PickupInteractor" method="request_pickup"]
@@ -212,10 +305,9 @@ position = Vector2(149, 451)
 [connection signal="pickup_requested" from="VisionRoundEdge" to="Player/PickupInteractor" method="request_pickup"]
 [connection signal="pickup_requested" from="VisionBoundary" to="Player/PickupInteractor" method="request_pickup"]
 
-[editable path="EnemyLowHealth"]
-[editable path="EnemyHighHealth"]
-[editable path="EnemyBase"]
-
 [editable path="WarmLamp"]
 [editable path="HiddenLamp"]
 [editable path="CoolLamp"]
+[editable path="EnemyLowHealth"]
+[editable path="EnemyHighHealth"]
+[editable path="EnemyBase"]

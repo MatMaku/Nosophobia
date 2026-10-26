@@ -14,7 +14,6 @@ const WorldItem = preload("res://scripts/items/world_item.gd")
 @onready var _firearm = $MovementTest/Player/FirearmController
 @onready var _reload_ui = $HUD/WeaponReloadUI
 @onready var _character_visual = $MovementTest/Player/CharacterVisual
-@onready var _vision = $MovementTest/Player/PlayerVision
 @onready var _world = $MovementTest
 @onready var _camera = $MovementTest/Player/Camera2D
 @onready var _world_drop_target = $HUD/WorldDropTarget
@@ -23,15 +22,17 @@ var _pending_key_door: WeakRef
 
 
 func _ready() -> void:
+	var blockers: Array[VisionBlocker2D] = []
+	for area in _world.find_children("*", "Area2D", true, false):
+		if area is VisionBlocker2D:
+			blockers.append(area)
+	$BasicFog2D.bind_viewer(_world.get_node("Player"), blockers)
+	for subject in get_tree().get_nodes_in_group("vision_subject"):
+		_bind_item_visibility(subject)
+	get_tree().node_added.connect(_bind_item_visibility)
 	_wheelchair_input.world_interaction_available = _can_world_interact
 	for door in _world.doors:
 		_bind_door(door)
-	var occluders: Array[LightOccluder2D] = []
-	for node in $MovementTest.find_children("*", "LightOccluder2D", true, false):
-		occluders.append(node)
-	_vision.bind_occluders(occluders)
-	$VisibilityFog/Fog.material.set_shader_parameter(
-		"visibility_mask", _vision.get_visibility_texture())
 	_aim.bind_equipment(_pickup.equipment)
 	_firearm.bind_equipment(_pickup.equipment)
 	_character_visual.bind_equipment(_pickup.equipment)
@@ -47,6 +48,11 @@ func _ready() -> void:
 	_reload_ui.bind_models(_pickup.inventory, _pickup.equipment)
 	_firearm.shot_resolved.connect(_show_shot_result)
 	_sync_input_gates()
+
+
+func _bind_item_visibility(node: Node) -> void:
+	if node is WorldItem:
+		node.visibility_test = $BasicFog2D.is_position_visible
 
 
 func _input(event: InputEvent) -> void:

@@ -12,10 +12,12 @@
 [ext_resource type="Texture2D" uid="uid://qyc6gjiss42t" path="res://Sprites/Cursor/aim_cursor.svg" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/combat/weapon_fire_vfx.tscn" id="11"]
 [ext_resource type="PackedScene" uid="uid://bsl6jmqg2x50p" path="res://scenes/ui/grain_overlay.tscn" id="12"]
-[ext_resource type="PackedScene" path="res://scenes/world/visibility_fog.tscn" id="13"]
 [ext_resource type="Script" uid="uid://ckoad3q4i8iom" path="res://scripts/ui/world_drop_target.gd" id="14"]
+[ext_resource type="PackedScene" path="res://scenes/world/basic_fog_2d.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://scenes/world/camera_darkness.tscn" id="16"]
 
 [node name="Main" type="Node2D" unique_id=989231918]
+editor_description = "Playground canónico: muros cenitales y puertas pegadas al muro, con tolerancia en la colisión de la hoja. Editar el nivel en scenes/world/movement_test.tscn."
 script = ExtResource("3")
 tracer_scene = ExtResource("9")
 
@@ -52,4 +54,9 @@ script = ExtResource("14")
 [node name="GrainOverlay" parent="." unique_id=1100799727 instance=ExtResource("12")]
 layer = 2
 
-[node name="VisibilityFog" parent="." unique_id=414475813 instance=ExtResource("13")]
+[node name="BasicFog2D" parent="." instance=ExtResource("15")]
+
+[node name="CameraDarkness" parent="." node_paths=PackedStringArray("viewer", "visibility_mask", "lights") instance=ExtResource("16")]
+viewer = NodePath("../MovementTest/Player")
+visibility_mask = NodePath("../BasicFog2D/VisibilityMask/Mask")
+lights = Array[NodePath]([NodePath("../MovementTest/WarmLamp/PointLight2D"), NodePath("../MovementTest/HiddenLamp/PointLight2D"), NodePath("../MovementTest/CoolLamp/PointLight2D")])

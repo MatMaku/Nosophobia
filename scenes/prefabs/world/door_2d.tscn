@@ -1,12 +1,14 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/world/door_2d.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/world/vision_blocker_2d.tscn" id="3"]
+[ext_resource type="Script" path="res://scripts/world/fog_appearance.gd" id="4"]
 
 [ext_resource type="Texture2D" path="res://sprites_codex/environment/doors/door_leaf.svg" id="2"]
 
 [sub_resource type="RectangleShape2D" id="LeafShape"]
 resource_local_to_scene = true
-size = Vector2(96, 12)
+size = Vector2(85, 12)
 
 [sub_resource type="RectangleShape2D" id="ClickShape"]
 resource_local_to_scene = true
@@ -18,6 +20,7 @@ polygon = PackedVector2Array(-48, 0, 48, 0)
 closed = false
 
 [node name="Door2D" type="Node2D"]
+editor_description = "Hoja visual y visión completas, pegadas al muro. Collision End Insets ajusta solo colisión sólida: X bisagra, Y punta. Default (10, 1) para muro de ancho 16 y giro ±100°."
 script = ExtResource("1")
 
 [node name="HingeAnchor" type="StaticBody2D" parent="."]
@@ -34,7 +37,7 @@ angular_damp = 3.0
 continuous_cd = 2
 
 [node name="Visual" type="NinePatchRect" parent="DoorBody"]
-light_mask = 1
+light_mask = 3
 offset_left = -48.0
 offset_top = -6.0
 offset_right = 48.0
@@ -47,6 +50,7 @@ patch_margin_right = 16
 patch_margin_bottom = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DoorBody"]
+position = Vector2(4.5, 0)
 shape = SubResource("LeafShape")
 
 [node name="InteractionArea" type="Area2D" parent="DoorBody"]
@@ -58,7 +62,7 @@ shape = SubResource("ClickShape")
 
 [node name="LightOccluder" type="LightOccluder2D" parent="DoorBody"]
 light_mask = 2
-occluder_light_mask = 3
+occluder_light_mask = 2
 occluder = SubResource("LeafOccluder")
 
 [node name="PinJoint2D" type="PinJoint2D" parent="."]
@@ -67,3 +71,10 @@ node_b = NodePath("../DoorBody")
 angular_limit_enabled = true
 angular_limit_lower = -1.7453293
 angular_limit_upper = 1.7453293
+
+[node name="VisionBlocker" parent="DoorBody" instance=ExtResource("3")]
+
+[node name="FogAppearance" type="Node" parent="." node_paths=PackedStringArray("visuals")]
+script = ExtResource("4")
+visuals = Array[NodePath]([NodePath("../DoorBody/Visual")])
+affected_by_fog = false

@@ -10,6 +10,12 @@ const ItemStack = preload("res://scripts/inventory/item_stack.gd")
 
 @onready var _sprite: Sprite2D = $Sprite2D
 var _runtime_stack: ItemStack
+## Injected by composition; tests the clicked world position, not the item center.
+var visibility_test: Callable
+
+
+func is_pointer_visible() -> bool:
+	return not visibility_test.is_valid() or visibility_test.call(get_global_mouse_position())
 
 
 func _ready() -> void:
@@ -36,6 +42,8 @@ func remove_quantity(amount: int) -> void:
 
 
 func _input_event(viewport: Viewport, event: InputEvent, _shape_idx: int) -> void:
+	if not is_visible_in_tree() or not is_pointer_visible():
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			viewport.set_input_as_handled()

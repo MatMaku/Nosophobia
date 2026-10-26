@@ -22,6 +22,10 @@ window/size/viewport_height=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[gui]
+
+theme/default_font_multichannel_signed_distance_field=true
+
 [input_devices]
 
 joypads/ignore_joypad_on_unfocused_application=true
@@ -31,6 +35,7 @@ joypads/ignore_joypad_on_unfocused_application=true
 2d_physics/layer_1="Solid / Hitscan"
 2d_physics/layer_2="Mouse Interaction"
 2d_physics/layer_3="Body Barrier (no hitscan)"
+2d_physics/layer_4="Vision Blocker"
 
 [physics]
 

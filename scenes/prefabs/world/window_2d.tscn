@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://sprites_codex/environment/windows/window_shards.svg" id="4"]
 [ext_resource type="Script" path="res://scripts/world/window_2d.gd" id="5"]
 [ext_resource type="Script" path="res://scripts/combat/health_component.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/world/fog_appearance.gd" id="7"]
 
 [sub_resource type="RectangleShape2D" id="GlassShape"]
 resource_local_to_scene = true
@@ -45,3 +46,7 @@ visible = false
 z_index = -1
 light_mask = 2
 texture = ExtResource("4")
+
+[node name="FogAppearance" type="Node" parent="." node_paths=PackedStringArray("visuals")]
+script = ExtResource("7")
+visuals = Array[NodePath]([NodePath("../Visual"), NodePath("../Shards")])

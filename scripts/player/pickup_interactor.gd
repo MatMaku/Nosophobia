@@ -20,6 +20,8 @@ func _ready() -> void:
 func can_pickup(world_item: WorldItem) -> bool:
 	if not is_instance_valid(world_item) or world_item.is_queued_for_deletion():
 		return false
+	if not world_item.is_visible_in_tree() or not world_item.is_pointer_visible():
+		return false
 	return global_position.distance_to(world_item.global_position) <= pickup_distance
 
 

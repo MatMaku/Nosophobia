@@ -3,19 +3,21 @@
 [ext_resource type="Script" uid="uid://btj7o3lnrk37h" path="res://scripts/world/level_boundary_2d.gd" id="1"]
 [ext_resource type="Texture2D" path="res://sprites_codex/environment/walls/wall_mid_tile.svg" id="2"]
 [ext_resource type="Shader" path="res://shaders/world/wall_slice.gdshader" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/world/vision_blocker_2d.tscn" id="4"]
+[ext_resource type="Script" path="res://scripts/world/fog_appearance.gd" id="5"]
 
 [sub_resource type="ShaderMaterial" id="WallSlice"]
 resource_local_to_scene = true
 shader = ExtResource("3")
 
 [sub_resource type="ConcavePolygonShape2D" id="ConcavePolygonShape2D_x1qn2"]
-segments = PackedVector2Array(-240, -160, 240, -160, 240, -160, 240, 160, 240, 160, -240, 160, -240, 160, -240, -160)
+segments = PackedVector2Array(-248, -168, 248, -168, 248, -168, 248, 168, 248, 168, -248, 168, -248, 168, -248, -168, -232, -152, -232, 152, -232, 152, 232, 152, 232, 152, 232, -152, 232, -152, -232, -152)
 
 [sub_resource type="OccluderPolygon2D" id="OccluderPolygon2D_6cs0x"]
 polygon = PackedVector2Array(-240, -160, 240, -160, 240, 160, -240, 160)
 
 [node name="LevelBoundary2D" type="Line2D" unique_id=879887418]
-light_mask = 1
+light_mask = 3
 material = SubResource("WallSlice")
 texture_repeat = 2
 points = PackedVector2Array(-240, -160, 240, -160, 240, 160, -240, 160)
@@ -34,4 +36,10 @@ shape = SubResource("ConcavePolygonShape2D_x1qn2")
 [node name="LightOccluder" type="LightOccluder2D" parent="." unique_id=898673397]
 light_mask = 2
 occluder = SubResource("OccluderPolygon2D_6cs0x")
-occluder_light_mask = 3
+occluder_light_mask = 2
+
+[node name="VisionBlocker" parent="." instance=ExtResource("4")]
+
+[node name="FogAppearance" type="Node" parent="." node_paths=PackedStringArray("visuals")]
+script = ExtResource("5")
+visuals = Array[NodePath]([NodePath("..")])

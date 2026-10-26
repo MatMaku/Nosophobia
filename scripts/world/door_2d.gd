@@ -21,6 +21,11 @@ enum DoorState { LATCHED, OPEN, KEY_LOCKED }
 @export_range(0.5, 10.0, 0.5) var rattle_angle_degrees: float = 3.0
 @export_range(0.03, 0.5, 0.01) var rattle_time: float = 0.15
 @export_group("Leaf")
+## Physical clearance only: x is the hinge end, y is the free end.
+@export var collision_end_insets: Vector2 = Vector2(10, 1):
+	set(value):
+		collision_end_insets = value.max(Vector2.ZERO)
+		_sync_leaf()
 @export var leaf_size: Vector2 = Vector2(96, 12):
 	set(value):
 		leaf_size = value.max(Vector2(32, 8))
@@ -33,6 +38,7 @@ enum DoorState { LATCHED, OPEN, KEY_LOCKED }
 @onready var _collision: CollisionShape2D = $DoorBody/CollisionShape2D
 @onready var _click_shape: CollisionShape2D = $DoorBody/InteractionArea/CollisionShape2D
 @onready var _occluder: LightOccluder2D = $DoorBody/LightOccluder
+@onready var _vision_blocker: VisionBlocker2D = $DoorBody/VisionBlocker
 
 var state: DoorState = DoorState.LATCHED
 var locked: bool:
@@ -45,6 +51,7 @@ var _last_opening_sign: float = -1.0
 
 
 func _ready() -> void:
+	set_physics_process(false)
 	_collision.shape = RectangleShape2D.new()
 	_click_shape.shape = RectangleShape2D.new()
 	_occluder.occluder = OccluderPolygon2D.new()
@@ -63,7 +70,6 @@ func _ready() -> void:
 	_joint.angular_limit_upper = limit
 	interaction_area.input_event.connect(_on_input_event)
 	_set_interaction_enabled(true)
-	set_physics_process(true)
 
 
 func _physics_process(_delta: float) -> void:
@@ -81,8 +87,13 @@ func _sync_leaf() -> void:
 	var center := Vector2(leaf_size.x * 0.5, 0)
 	if Engine.is_editor_hint() or state != DoorState.OPEN:
 		body.position = center
-	_collision.position = Vector2.ZERO
-	_collision.shape.size = leaf_size
+	# Keep the visible leaf and LOS full-size; only the solid ends need clearance.
+	var insets := collision_end_insets
+	var total := insets.x + insets.y
+	if total > leaf_size.x - 1.0:
+		insets *= (leaf_size.x - 1.0) / total
+	_collision.position = Vector2((insets.x - insets.y) * 0.5, 0)
+	_collision.shape.size = Vector2(leaf_size.x - insets.x - insets.y, leaf_size.y)
 	_click_shape.position = Vector2.ZERO
 	_click_shape.shape.size = leaf_size + Vector2(0, 12)
 	_visual.position = -leaf_size * 0.5
@@ -90,9 +101,11 @@ func _sync_leaf() -> void:
 	_occluder.occluder.polygon = PackedVector2Array([
 		Vector2(-center.x, 0.0), Vector2(center.x, 0.0)])
 	_occluder.occluder.closed = false
+	var half := leaf_size * 0.5
+	_vision_blocker.set_contours([PackedVector2Array([
+		Vector2(-half.x, -half.y), Vector2(half.x, -half.y),
+		Vector2(half.x, half.y), Vector2(-half.x, half.y)])])
 	_occluder.occluder.cull_mode = OccluderPolygon2D.CULL_DISABLED
-	_occluder.set_meta("vision_occlusion_width", leaf_size.y)
-	_occluder.set_meta("vision_dynamic_joint", true)
 
 
 func can_interact_from(world_position: Vector2) -> bool:
@@ -137,6 +150,7 @@ func _opening_sign_from(world_position: Vector2) -> float:
 
 
 func _open_smoothly(opening_sign: float) -> void:
+	set_physics_process(false)
 	state = DoorState.OPEN
 	_transition_active = true
 	_set_interaction_enabled(false)
@@ -156,6 +170,7 @@ func _finish_opening() -> void:
 	_transition_active = false
 	body.freeze = false
 	body.sleeping = false
+	set_physics_process(true)
 
 
 func _rattle(opening_sign: float) -> void:
@@ -180,6 +195,7 @@ func _finish_rattle() -> void:
 
 
 func _latch() -> void:
+	set_physics_process(false)
 	state = DoorState.LATCHED
 	body.freeze = true
 	body.linear_velocity = Vector2.ZERO
