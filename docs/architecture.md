@@ -1,7 +1,7 @@
 # Arquitectura actual
 
-Biblioteca visual de referencia en `sprites_codex/` (SVG, catálogo y escalas en
-`sprites_codex/docs/README.md`). El playground utiliza sus bases de piso, muro,
+Biblioteca visual de referencia en `assets/sprites/<función>/generated_ai/` (SVG, catálogo y escalas en
+`docs/art_reference.md`). El playground utiliza sus bases de piso, muro,
 puerta, ventana e iconos; la galería estática permanece como catálogo visual.
 
 Mapa técnico de los sistemas existentes. Las reglas de programación y organización
@@ -18,7 +18,7 @@ Muros, puertas y ventanas deben seguir siendo válidos bajo cualquier rotación 
 no contienen caras verticales ni sombreado direccional para fingir una cámara inclinada.
 El grosor de Line2D y su volumen LOS se extienden simétricamente a ambos lados del path.
 La base canónica de muro es wall_mid_tile; puerta usa door_leaf y ventana usa
-window_intact/cracked/broken, con shards aparte. La galería y README de sprites_codex
+window_intact/cracked/broken, con shards aparte. La galería y docs/art_reference.md
 documentan las referencias conservadas; las piezas mid/cap reemplazadas ya no existen.
 
 ### Resolución y nitidez
@@ -40,42 +40,49 @@ No se forzaron mipmaps ni escalado entero global: el proyecto mezcla arte suave 
 ```text
 scenes/
   app/main.tscn
-  prefabs/player/player.tscn
-  prefabs/enemies/enemy_base.tscn
+  prefabs/actors/player.tscn
+  prefabs/actors/enemies/enemy_base.tscn
   player/character_visual.tscn
   world/movement_test.tscn
   world/{basic_fog_2d, vision_blocker_2d}.tscn
-  prefabs/lighting/decorative_light_2d.tscn
-  prefabs/world/{level_boundary_2d, door_2d, window_2d}.tscn
-  prefabs/items/{world_item, key_world_item}.tscn
+  prefabs/effects/decorative_light_2d.tscn
+  prefabs/environment/{level_boundary_2d, door_2d, window_2d}.tscn
+  prefabs/items/{generic_item, key_item, ammo_item, weapon_item}.tscn
+  internal/level_session.tscn
+  internal/items/world_item.tscn
   ui/inventory_ui.tscn
   ui/inventory_slot.tscn
   ui/item_drag_preview.tscn
   ui/weapon_reload_ui.tscn
 scripts/
-  app/main.gd
+  app/{level_session, level_connections}.gd
   player/{wheelchair_body, wheelchair_input, wheelchair_debug, pickup_interactor}.gd
   player/character_visual.gd
   enemies/enemy_base.gd
   combat/{health_component, firearm_definition}.gd
-  world/{movement_test, decorative_light_2d, level_boundary_2d, door_2d, window_2d}.gd
+  world/{world_item_drops, decorative_light_2d, level_boundary_2d, door_2d, window_2d}.gd
   world/{basic_fog_2d, visibility_mask_2d, vision_blocker_2d, fog_appearance}.gd
   items/{item_definition, world_item}.gd
   inventory/{inventory, item_stack, equipment}.gd
   ui/{cursor_controller, inventory_ui, inventory_slot, world_drop_target}.gd
 resources/items/{test_item, test_ammo, test_weapon, test_room_key, wrong_test_key}.tres
-Sprites/Cursor/{Cursor Default, Cursor Abierto, Cursor Agarrando}.png
+assets/sprites/ui/authored/cursors/{Cursor Default, Cursor Abierto, Cursor Agarrando}.png
 docs/architecture.md
 ```
 
 ## Scene ownership
 
-- **Main** compone MovementTest, CursorController, VFX y un CanvasLayer HUD con
-  InventoryUI, WeaponReloadUI y WorldDropTarget. Inyecta los modelos y coordina
-  handoff de input y transferencias de drop sin poseer reglas de inventario.
-- **MovementTest** es el level playground actual. Su `.tscn` posee explícitamente
-  Player, muros de puntos, Door2D, Window2D, luces, enemigos y WorldItems.
-  Conecta pickup_requested y solo crea WorldItems que el jugador tira en runtime.
+- **Main** solo instancia el playground guardado. También se puede ejecutar cualquier
+  nivel Node2D con exactamente un Player, colocado a cualquier profundidad/nombre.
+- **Player/LevelSession** posee HUD, cursor, VFX, fog y oscuridad. Es composición
+  interna con transform top_level, no un prefab adicional ni un singleton.
+- **LevelConnections** recorre una vez la escena ejecutada, registra por tipo
+  items/puertas/luces/blockers y conecta señales. node_added/tree_exiting mantienen
+  registros acotados al nivel; no hay búsquedas por frame ni listas manuales.
+- **WorldItemDrops** usa ese registro para evitar solapar drops con items anidados.
+  Solo crea drops runtime; el contenido permanente vive en .tscn.
+- **MovementTest** es el playground sin script de composición particular. Conserva
+  posiciones, cantidades, luces y HP de prueba, ahora configurados en raíces.
 - **Player** tiene un RigidBody2D raíz, CharacterVisual, CollisionShape2D, WheelchairInput,
   Camera2D, Debug y PickupInteractor. La cámara sigue su posición sin rotar.
   Debug recibe una referencia explícita a WheelchairInput.
@@ -100,7 +107,7 @@ docs/architecture.md
 
 | Script | Responsabilidad | No hace |
 | --- | --- | --- |
-| main.gd | Componer UI/modelos, cursor, input handoff, puertas y drop al mundo. | Reglas de pickup o almacenamiento. |
+| level_session.gd | Componer UI/modelos, cursor, input handoff, puertas y drop al mundo. | Reglas de pickup o almacenamiento. |
 | wheelchair_body.gd | Fuerza longitudinal, torque, agarre lateral e impulso externo. | UI, pickup o reglas de inventario. |
 | wheelchair_input.gd | Tracking local del mouse, drag dentro del radio y prioridad de clicks. | Aplicar fuerzas o recoger items. |
 | wheelchair_debug.gd | Dibujar radio, cursor, inicio del gesto y frente. | Reglas físicas. |
@@ -121,7 +128,7 @@ docs/architecture.md
 | level_boundary_2d.gd | Sincronizar puntos de Line2D hacia colisión y oclusión. | Generar contenido del nivel. |
 | door_2d.gd | Estados de latch/key lock, transición breve y hoja física con bisagra. | Buscar Inventory, UI o Player. |
 | window_2d.gd | Durabilidad, estados visuales y separación entre barrera corporal e hitscan. | Oclusión de visión, shards físicos o paso de actores. |
-| movement_test.gd | Referencias de composición y spawn de drops runtime. | Generar la demo o dibujar muros. |
+| world_item_drops.gd | Spawn de drops runtime con registro de items anidados. | Generar la demo o dibujar muros. |
 | basic_fog_2d.gd | LOS físico y malla exterior para gris. | IA, memoria explorada o excepciones de geometría. |
 | visibility_mask_2d.gd | Rasterizar esa malla y recortar entidades por píxel. | Calcular otra LOS o cambiar física. |
 | vision_blocker_2d.gd | Contornos físicos exclusivos de visión. | Colisión corporal o iluminación. |
@@ -160,11 +167,11 @@ WorldItem --pickup_requested--> PickupInteractor
 
 Inventory --changed--> InventoryUI --> InventorySlot.refresh
 Equipment --changed--> InventoryUI --> WeaponSlot + indicador
-Main --------bind_inventory--------^
+LevelSession --------bind_inventory--------^
 
-InventorySlot --drag nativo--> WorldDropTarget --drop requested--> Main
+InventorySlot --drag nativo--> WorldDropTarget --drop requested--> LevelSession
                                                                |
-                                      MovementTest.spawn_dropped_item
+                                      WorldItemDrops.spawn_dropped_item
                                                                |
                                   spawn correcto -> Inventory.take
                                                                |
@@ -174,8 +181,8 @@ WheelchairInput --consume_motion--> WheelchairBody --> fuerzas/torque
         |
         +--> WheelchairDebug (lectura)
 
-Door2D KEY_LOCKED --rattle/key_requested--> Main --> InventoryUI.open_panel
-InventorySlot --item_selected--> InventoryUI --> Main
+Door2D KEY_LOCKED --rattle/key_requested--> LevelSession --> InventoryUI.open_panel
+InventorySlot --item_selected--> InventoryUI --> LevelSession
                                             | key_id compatible
                                             v
                            Door2D LATCHED --> opening --> OPEN
@@ -184,6 +191,19 @@ InventorySlot --item_selected--> InventoryUI --> Main
 pickup_distance es independiente de interaction_radius. Un item lejano o sin
 espacio permanece en el mundo. Se rechazan solicitudes de nodos ya pendientes de
 eliminación para impedir recogidas duplicadas en el mismo frame.
+
+## Ciclos de movimiento de la silla
+
+WheelchairInput acumula eventos; WheelchairBody consume cada gesto una sola vez en
+_physics_process y aplica fuerzas/torque y agarre lateral. No se usan fuerzas en
+_process ni impulsos repetidos para sustituir fuerzas. Se conserva el integrador
+normal de Godot, damping y CCD del prefab. Los impulsos externos siguen siendo puntuales.
+
+Noclip recoge la intención WASD en el ciclo físico, despierta el cuerpo si hace falta
+y escribe su velocidad mediante PhysicsDirectBodyState2D en _integrate_forces; allí
+también detiene el viaje de teclado al soltar/salir y captura la inercia efectiva.
+Los cambios de shape siguen diferidos. Animación, cámara shake y debug permanecen
+en presentación; no se modificaron parámetros de conducción durante esta revisión.
 
 ## Input flow
 
@@ -199,7 +219,7 @@ eliminación para impedir recogidas duplicadas en el mismo frame.
    La consulta no recoge items ni calcula distancias de pickup.
 4. Player y obstáculos usan la capa física 1. WorldItem usa capa 2 y máscara 0:
    es clickeable pero no bloquea el movimiento del cuerpo.
-5. Main observa LMB/RMB presionados antes de GUI. Si el punto queda fuera del
+5. LevelSession observa LMB/RMB presionados antes de GUI. Si el punto queda fuera del
    panel/botón abierto, lo cierra sin manejar ni recrear el InputEvent. Las señales
    actualizan los gates sincrónicamente y el mismo evento continúa una sola vez
    hacia GUI y gameplay _unhandled_input. Un press interior y el release de un drag
@@ -208,23 +228,23 @@ eliminación para impedir recogidas duplicadas en el mismo frame.
 Los slots usan _get_drag_data, _can_drop_data y _drop_data de Control. Iniciar un
 drag no modifica modelos. Drop entre slots mueve a vacío, fusiona el mismo item hasta
 max_stack_size o intercambia items diferentes. WorldDropTarget recibe únicamente el
-drop sobre mundo: Main prepara primero el WorldItem y solo entonces usa Inventory.take.
+drop sobre mundo: LevelSession prepara primero el WorldItem y solo entonces usa Inventory.take.
 Si falla el spawn o el slot cambió, revierte el nodo y conserva el item. Se transfiere
 el stack completo, incluida la misma referencia y su estado runtime de arma.
 
-MovementTest limita el spawn a drop_distance desde Player, usa la dirección al mouse
+WorldItemDrops limita el spawn a drop_distance desde Player, usa la dirección al mouse
 o el frente local como fallback y prueba offsets pequeños contra paredes y WorldItems.
 No aplica física ni permite tirar directamente a una posición lejana.
 
 ## Cursor
 
-CursorController es propiedad de Main y recibe contextos semánticos mediante
+CursorController es propiedad de LevelSession y recibe contextos semánticos mediante
 set_context(owner, available, active). GRABBING tiene prioridad sobre
 INTERACTABLE y DEFAULT. Los contextos usan referencias débiles: borrar o salir de
 un nodo no deja el cursor bloqueado.
 
 ```text
-Main traduce hover de UI, WorldItem y WheelchairInput
+LevelSession traduce hover de UI, WorldItem y WheelchairInput
                          |
                          v
                   CursorController
@@ -234,8 +254,8 @@ Main traduce hover de UI, WorldItem y WheelchairInput
 ```
 
 Las cuatro texturas (incluida AIMING) y hotspots se asignan al CursorController en
-scenes/app/main.tscn desde el Inspector. Las texturas actuales están en
-Sprites/Cursor/. El Button Mochila admite su propiedad icon nativa desde
+scenes/internal/level_session.tscn desde el Inspector. Las texturas actuales están en
+assets/sprites/ui/authored/cursors/. El Button Mochila admite su propiedad icon nativa desde
 InventoryUI.tscn. Paneles, tamaños, labels e icon presentation se editan desde
 las escenas UI y su Inspector; los scripts no construyen la interfaz visual.
 
@@ -253,7 +273,7 @@ INTERACTABLE se usa para el gesto de movimiento y controles de UI.
 - **Presentation**: Debug, CursorController, dibujo de la pista e
   InventoryUI/InventorySlot.
   WorldItem posee su representación provisional junto con su área de interacción.
-- **Composición**: Main y las conexiones de MovementTest suministran dependencias
+- **Composición**: LevelSession y LevelConnections suministran dependencias
   explícitas. No hay autoloads, managers ni bus global.
 
 ## Known extension points
@@ -370,8 +390,8 @@ Los valores del Inspector de WeaponAim están en grados y Hz: drift sano/crític
 0.4/2.0 a 0.35 Hz; tremor 0.06/0.25 a 3 Hz; blend inicial 0.15 s.
 set_health_ratio(value) acepta 0..1 y parte de 1.0. Solo escala amplitudes: la Curve
 opcional health_sway_curve recibe 1 - health_ratio; sin Curve usa lesión al cubo.
-Este es el punto para conectar salud del Player posteriormente; HealthComponent
-existe en EnemyBase y Window2D, sin conexión al sway del jugador.
+Este es el punto para conectar salud al sway posteriormente. Player, EnemyBase y
+Window2D tienen HealthComponent; esta iteración no conecta vida y sway.
 
 RMB empieza desde forward, con sway cero. Soltar RMB, bloquear input o cambiar equipo
 reinicia los ángulos y cancela/restaura el recoil visual. El recoil sigue siendo un
@@ -390,13 +410,14 @@ no revela entidades ocultas. GrainOverlay y HUD se dibujan después, independien
 
 ### Oscuridad de cámara
 
-Main posee CameraDarkness (CanvasLayer 1), después del mundo/fog y antes de grain
+LevelSession posee CameraDarkness (CanvasLayer 1), después del mundo/fog y antes de grain
 y HUD. Su ColorRect negro aplica una caída smoothstep en píxeles de pantalla,
 centrada en la proyección del Player. No consulta paredes ni altera su forma
 por geometría. No hay PointLight de proximidad: AmbientDarkness vuelve a su
 valor base, y la atmósfera oscura se aplica exclusivamente en esta capa.
 
-Main asigna explícitamente viewer, visibility_mask y lights en la escena.
+LevelSession inyecta viewer y la lista de luces descubiertas por LevelConnections;
+visibility_mask es una referencia interna de su escena.
 Las lámparas habilitadas alivian la oscuridad alrededor de su posición proyectada,
 aunque su centro quede fuera de la LOS o de pantalla: importa su área de influencia.
 Ese alivio se recorta por píxel con la máscara LOS existente: solo actúa dentro
@@ -406,17 +427,17 @@ y las sombras reales continúan a cargo de PointLight2D. No es una segunda másc
 LOS: nunca revela enemigos detrás de paredes. No genera otra máscara ni raycasts.
 El halo base de cámara no se deforma por occluders; solo se recorta el alivio de luces.
 
-Inspector Main/CameraDarkness: clear_radius (0.18) y dark_radius (0.75), fracciones
-de la altura de pantalla; darkness (0.98), lamp_relief (1) y lista lights (hasta 32).
+Inspector LevelSession/CameraDarkness: clear_radius (0.18) y dark_radius (0.75), fracciones
+de la altura de pantalla; darkness (0.98), lamp_relief (1) ; admite hasta 32 luces registradas.
 Al cambiar zoom, el halo conserva tamaño de pantalla y las lámparas acompañan
 su tamaño en mundo. Los transforms se sincronizan antes del render; sin raycasts
-adicionales, nuevas luces ni SubViewports. Para una nueva lámpara del nivel,
-asignar su PointLight2D a lights. Puertas excluidas del gris siguen recibiendo
+adicionales, nuevas luces ni SubViewports. Una nueva DecorativeLight2D se registra
+automáticamente; no hay que asignarla a ningún array. Puertas excluidas del gris siguen recibiendo
 esta oscuridad de cámara.
 
 ## Fog actual: escenario conocido y entidades recortadas
 
-Main posee BasicFog2D e inyecta Player y los VisionBlocker2D del nivel.
+LevelSession posee BasicFog2D e inyecta Player y los VisionBlocker2D del nivel.
 256 rayos fijos más esquinas/intersecciones ±epsilon producen una única LOS:
 primer impacto contra el volumen completo de paredes/puertas, sin tolerancia.
 Window2D no bloquea visión. No hay memoria explorada ni influencia de las luces.
@@ -439,18 +460,18 @@ propio necesitará integrar el recorte, no sustituirlo silenciosamente.
 La máscara vive en un SubViewport aislado, sin cámara adicional. Copia la malla
 durante física y sincroniza resolución/canvas con el viewport principal antes del
 render. Usa filtrado nearest. No calcula otra LOS ni interpola impactos.
-Main inyecta en WorldItem la consulta puntual para validar el mouse sobre la
+LevelSession inyecta en WorldItem la consulta puntual para validar el mouse sobre la
 fracción visible. Física, daño y reglas de inventario permanecen separados.
 
-Inspector Main/BasicFog2D: vision_radius (650), ray_count (256), unseen_brightness
+Inspector LevelSession/BasicFog2D: vision_radius (650), ray_count (256), unseen_brightness
 (0.45), show_rays. last_update_usec mide CPU, no el coste GPU de la máscara.
 El debug no redibuja mientras está desactivado; los buffers de la malla se
 dimensionan una vez por actualización, sin arrays temporales por triángulo.
 
 ### Elección de geometrías afectadas por gris
 
-Door2D, LevelBoundary2D y Window2D poseen FogAppearance. Activar Hijos editables,
-seleccionar ese nodo y cambiar affected_by_fog. Puertas: false por defecto;
+Door2D, LevelBoundary2D y Window2D exponen affected_by_fog en su raíz y lo aplican
+a su FogAppearance interno. Puertas: false por defecto;
 paredes/ventanas: true. visuals son referencias explícitas a los dibujos afectados.
 Para otra geometría, añadir un Node con scripts/world/fog_appearance.gd y asignar
 sus visuales. No usarlo para enemigos/items, que pertenecen a vision_subject.
@@ -462,6 +483,52 @@ mundo normal donde coincidan. Player y HUD siguen encima. No cambia ni desactiva
 VisionBlocker, colisiones, sombras decorativas o el polígono LOS; una puerta sin
 gris continúa ocultando por píxel al enemigo que esté detrás.
 
+## Player health and development UI
+
+Player posee HealthComponent reutilizado, con max_health=100 editable en su raíz;
+current_health es runtime por instancia. Player.take_damage(amount) es la entrada
+para futuros impactos: ignora daño en god mode y delega el resto al componente.
+Player.heal(amount) delega curación limitada al máximo, sin resucitar. HealthComponent
+conserva damaged/died y añade changed(current, maximum) para daño, curación y cambios
+de máximo. No hay invulnerabilidad genérica en HealthComponent.
+
+Al llegar a 0, died se emite una vez, se anula velocidad, se congela el cuerpo y se
+bloquean input de silla/aim y clicks de mundo. El Player permanece en escena; no hay
+respawn/game over ni pantalla final. Activar god mode después no lo resucita.
+El menú de debug sigue accesible. El HUD inferior central, propiedad de LevelSession/HUD,
+se conecta explícitamente a health.changed, sin polling ni rutas al nivel.
+
+```text
+Player → HealthComponent → changed → LevelSession/HUD/PlayerHealthHUD
+
+DebugMenu (CanvasLayer 4)
+    ↓
+DebugSettings (RefCounted, runtime de LevelSession/LevelDebug)
+    ↓ changed
+LevelDebug → Player / enemigos / fog / oscuridad
+```
+
+toggle_debug_menu usa F1 en InputMap. El juego continúa; abrirlo cancela el gesto/aim
+y su Control fullscreen bloquea clicks debajo, sin interferir con la GUI del menú.
+Orden: mundo/fog → oscuridad (layer 1) → grain (2) → HUD (3) → debug (4).
+La UI solo edita flags; LevelDebug aplica adaptadores pequeños. LevelConnections
+notifica piece_registered durante discovery inicial y altas posteriores, sin búsquedas
+por frame. No Autoload, persistencia, consola ni herramientas de spawn/daño en el menú.
+
+| Flag (default) | Receptor y efecto |
+| --- | --- |
+| Show Debug Visuals (OFF) | API set_debug_visuals_enabled en Player, EnemyBase/PatrolEnemy, noise y fog. Global AND flag local; no borra la configuración de Inspector. Los rays masivos del fog siguen opt-in mediante Show Rays. |
+| Noclip (OFF) | Player guarda/restaura exactamente disabled de su única CollisionShape2D corporal mediante aplicación diferida, agrupando toggles rápidos. Conserva la inercia efectiva para permitir torque sin forma activa y restaura el valor original (incluido automático). WASD mediante InputMap mueve en ejes de pantalla, diagonal normalizada, a noclip_speed (240); mouse sigue girando. Al soltar WASD o salir del modo se detiene la traslación de teclado. Menú/UI y muerte bloquean también WASD. Layers/masks y pickups se conservan; al restaurar dentro de un sólido se aplica la resolución física normal. |
+| God Mode (OFF) | Player.take_damage ignora daño; no cura ni revive. |
+| Enemy Detection (ON) | Perception deja de consultar vista/ruido; PatrolEnemy cancela CHASE/memoria inmediatamente y continúa PATROL. |
+| Fog (ON) | BasicFog2D oculta/muestra Shadow y VisibilityMask cambia mask_enabled del shader de entidades. LOS y viewport siguen actualizándose, sin reconstrucción ni cambios a IA/pickup/navegación. |
+| Darkness (ON) | Oculta CameraDarkness; CanvasModulate pasa a blanco y luces decorativas se deshabilitan temporalmente. Al volver restaura color/enabled originales, sin destruir nodos ni modificar parámetros de luces. |
+
+Las opciones locales de debug AI están activadas por defecto pero subordinadas al
+switch global OFF. Etiquetas permanentes de zonas del playground no son overlays de
+debug runtime. Fog y Darkness son independientes: apagar fog no cambia la LOS física
+que CameraDarkness utiliza para limitar iluminación de lámparas.
+
 ## EnemyBase and damage
 
 EnemyBase es un CharacterBody2D quieto: posee Visual (Sprite2D), CollisionShape2D,
@@ -469,8 +536,9 @@ HealthComponent y un Label de HP provisional desactivable con show_health_debug.
 HealthComponent posee max_health y current_health por instancia; inicia lleno,
 limita el daño a 0..max_health y emite damaged y died (una sola vez).
 EnemyBase delega take_damage y escucha died para queue_free. No contiene IA.
-Futuros enemigos pueden heredar esta escena y añadir comportamiento mediante
-componentes/controladores concretos, sin introducirlo en la base.
+PatrolEnemy hereda su escena y añade componentes sin introducir decisiones en la base.
+EnemyBase tiene un NavigationObstacle2D circular pasivo para evasión de otros actores;
+PatrolEnemy lo desactiva y utiliza su propio NavigationAgent2D con avoidance.
 
 ```text
 FirearmController -> mismo hit del raycast -> collider.take_damage(damage)
@@ -486,28 +554,112 @@ pellet (4 pellets existentes). No cambia aim, spread ni recoil.
 EnemyBase usa capa/máscara física 1 como Player/mundo y máscara visual 2 para
 recibir luz decorativa. No controla visibilidad del mundo.
 
+## Enemy navigation and perception
+
+```text
+PatrolEnemy (composición/Inspector, derivado de EnemyBase)
+  ├── EnemyDefinition (Resource compartido, solo datos estáticos)
+  ├── Movement + NavigationAgent2D → CharacterBody2D.move_and_slide
+  ├── Perception → cono + LOS física / radio de escucha
+  └── Behavior → PATROL / CHASE, waypoint, espera y última posición conocida
+
+Player.linear_velocity · forward → PlayerNoiseEmitter → Perception
+LevelSession/LevelConnections → inyección explícita de Player en PatrolEnemy
+```
+
+EnemyDefinition configura patrol_speed 44, chase_speed 80, acceleration 260,
+deceleration 360, vision_distance 260, vision_angle_degrees 100, hearing_radius 220
+y target_memory_seconds 3. damage=10 es únicamente un dato futuro: no hay ataques
+ni daño al Player. Cada enemigo conserva su propio estado, nunca en ese Resource.
+El Resource activo resources/enemies/patrol_enemy.tres conserva su tuning particular:
+chase_speed 48 (antes tenía override manual 55), mayor que patrol_speed 44 (antes 55).
+Los defaults de clase anteriores eran 55/95; no se cambió la fórmula de movimiento.
+
+Colocar un LevelNavigation2D por nivel y dibujar su envolvente caminable mediante
+los handles nativos de NavigationPolygon. Al cargar, realiza un único bake oficial
+con NavigationMeshSourceGeometryData2D. Deriva obstrucciones desde points/width de
+LevelBoundary2D (incluyendo uniones miter y perímetros cerrados huecos) y pane_size
+de Window2D, incluso rota. No se editan copias de paredes ni se bakea por frame.
+agent_clearance=22 debe cubrir el radio corporal del enemigo más grande del nivel.
+rebuild() es explícito si cambia geometría estática durante runtime. Las geometrías
+genéricas que no sean estos prefabs todavía no se incorporan automáticamente.
+
+Las puertas dinámicas quedan fuera del bake: su colisión física detiene al enemigo
+cuando bloquean el paso, y permite continuar al abrirse. No hay apertura/empuje
+inteligente ni búsqueda de otra ruta por una puerta cerrada. Avoidance entre actores
+no modifica el mapa ni garantiza salida de un pasillo completamente bloqueado.
+Las ventanas, aun rotas, siguen excluidas del mapa y bloquean cuerpos (mask 5).
+
+PatrolRoute2D es un Path2D nativo colocado en el nivel, fuera del enemigo móvil.
+Asignarlo a Patrol Route y editar Curve: sus puntos son destinos, no trayectorias.
+ROUTE recorre todos en loop, con wait_time_at_point; STATIONARY no patrulla pero
+puede perseguir. Sin ruta/puntos se queda quieto. Un punto inaccesible no se salta
+silenciosamente: debe corregirse en el editor. UP es forward inicial; Movement
+orienta progresivamente el visual/forward hacia la velocidad real sin girar el collider.
+
+Perception evalúa distancia + cono y una consulta física solo si pasan ambas.
+AI Sight Blocker usa bit 16 (capa 5), independiente del fog: áreas propias en muros
+y hojas de puertas, derivadas de su geometría completa. El muro comparte su Shape
+física, no el estado del blocker visual; la puerta gira su área con DoorBody.
+Window2D no participa. Punto de detección: centro físico del Player. Ninguna regla
+de IA consulta visibilidad visual, iluminación, shaders ni píxeles.
+
+PlayerNoiseEmitter lee la velocidad longitudinal física absoluta: <=20 es silencio,
+>=120 produce radio 220, interpolación entre ambos. La inercia también suena; la
+velocidad lateral no cuenta como rodadura. Escucha si distancia <= ambos radios
+(emisor y enemigo), ignorando paredes en esta primera versión. El emisor expone
+get_noise_radius(), sin sistema global ni otras fuentes de ruido implementadas.
+
+Vista O escucha inicia CHASE. Se actualiza destino cada 0.2 s, nunca persiguiendo
+la posición oculta después de perder percepción: solo la última conocida durante
+la memoria. A 44 unidades se detiene; al expirar memoria vuelve a la patrulla.
+Movement acelera/frena y usa navegación + evasión local oficial, sin decisiones.
+Debug por enemigo: navegación nativa, waypoints/última posición, cono y radios de
+escucha/ruido. PlayerNoiseEmitter también permite mostrar su radio independientemente.
+El playground guarda LevelNavigation2D, EnemyPatrolRoute y un PatrolEnemy; los
+EnemyBase anteriores permanecen como receptores de daño. No se genera el layout.
+
 ## Level prefabs
 
-Un prefab es una escena canónica reutilizable y configurable desde Inspector.
-Están reunidos en scenes/prefabs/: player/player.tscn, enemies/enemy_base.tscn,
-items/world_item.tscn, lighting/decorative_light_2d.tscn y, bajo world/,
-level_boundary_2d.tscn, door_2d.tscn y window_2d.tscn. No son copias ni wrappers.
-Las poses y otras escenas de soporte mantienen sus ubicaciones existentes.
+Piezas canónicas bajo scenes/prefabs/:
 
-Arrastrar una escena al nivel. Para editar hijos de una instancia activar
-**Editable Children / Hijos editables**: HealthComponent.max_health controla HP;
-Visual.texture/modulate el placeholder; PointLight2D expone color, energy,
-texture_scale y sombras nativos. La raíz de la luz expone edge_hardness y noise_*.
-Estas propiedades son por nodo/instancia; hacer recursos compartidos únicos antes
-de modificar, por ejemplo, la geometría de una CollisionShape2D.
-WorldItem expone definition y quantity en la raíz. Conectar pickup_requested al
-PickupInteractor del Player desde la composición del nivel, como MovementTest.
-Player mantiene las conexiones externas de Main; colocarlo no reemplaza esa
-composición de HUD, Equipment y apuntado. No hay búsquedas globales nuevas.
+- actors/player.tscn y actors/enemies/enemy_base.tscn.
+- actors/enemies/{patrol_enemy,patrol_route_2d}.tscn.
+- environment/{level_boundary_2d,door_2d,window_2d}.tscn.
+- environment/level_navigation_2d.tscn (envolvente de navegación del nivel).
+- effects/decorative_light_2d.tscn.
+- items/{generic_item,key_item,ammo_item,weapon_item}.tscn.
+
+Las cuatro categorías heredan scenes/internal/items/world_item.tscn, también usado
+para drops. Ningún componente de UI/poses/VFX internos está en el catálogo.
+
+WorldItem es @tool: definition, quantity, world_sprite y world_visual_scale en raíz;
+preview por setters/Resource.changed, sin polling. Escala visual no cambia interacción.
+definition.world_sprite es opcional, con icon como fallback. El override world_sprite
+del nodo es solo de colocación; los drops recuperan la presentación de la definición.
+Generic/Key exponen proxies de display_name/inventory_icon y Key además key_id. Editar
+estos detalles crea una variante de definición; los proxies no se serializan aparte.
+Asignar la misma definición a varios pickups conserva su identidad para stacks.
+Ammo/Weapon seleccionan una definición canónica: icono y estadísticas se editan dentro
+del Resource compartido, conscientemente para todo ese tipo. No se duplican al colocar.
+Quantity de arma debe ser 1; FirearmState sigue siendo individual por ItemStack.
+
+Door expone leaf_texture, leaf_size, distancia, key_id/consumo, ángulos y física avanzada
+en raíz. Window expone pane_size, durabilidad, tres texturas y shard_texture/dispersión.
+EnemyBase expone sprite, visual_scale, max_health, collision_radius y debug; su shape
+es propia por instancia. Player concentra Movement/Input/Aim/Camera/Debug habituales;
+los hijos reciben estos valores al iniciar, no se editan para ese tuning.
+DecorativeLight2D expone light_color/light_energy/light_radius y carácter en raíz;
+genera preview en editor al cambiar parámetros, sin flicker/polling de editor. Su radio
+equivale a la mitad de la textura escalada en unidades de mundo con Scale=1.
+
+Crear un nivel Node2D, colocar exactamente un Player y arrastrar las demás piezas.
+No hace falta editar Main, conectar pickups ni registrar puertas/luces. Componentes
+internos conservan rutas relativas dentro de su propio prefab, nunca al layout del nivel.
 
 ### LevelBoundary2D
 
-Prefab: scenes/prefabs/world/level_boundary_2d.tscn. La raíz es un Line2D:
+Prefab: scenes/prefabs/environment/level_boundary_2d.tscn. La raíz es un Line2D:
 seleccionarla y usar los handles nativos de puntos en la barra del editor 2D.
 No hay que activar Hijos editables ni editar las geometrías derivadas.
 
@@ -524,7 +676,8 @@ runtime construye una vez, sin _process. Cada instancia posee su propio recurso
 occluder para las sombras de las luces decorativas.
 Width, Default Color, Texture y Texture Mode son propiedades nativas de Line2D;
 Tile y Texture Repeat están configurados para textura repetible. Collision Enabled
-y Occlusion Enabled permiten desactivar cada salida. Width controla visual y volumen
+y Occlusion Enabled controlan física y sombras decorativas; Blocks Vision controla
+LOS independientemente. Width controla visual y volumen
 LOS y colisión corporal/hitscan: ambos reciben los mismos contornos completos,
 sin una barrera física adicional en el eje. Collision es el único cuerpo sólido;
 VisionBlocker es un Area2D de capa 4 que solo consultan los rayos de visión.
@@ -554,8 +707,8 @@ Los occluders derivados se utilizan únicamente para sombras decorativas.
 ### Door2D, Window2D and playground
 
 Door2D es un prefab físico con HingeAnchor, DoorBody RigidBody2D, área clickeable,
-LightOccluder y PinJoint2D. Main valida distancia mediante la lista explícita
-MovementTest.doors. Sus estados locales son:
+LightOccluder y PinJoint2D. LevelSession valida distancia mediante las puertas
+registradas automáticamente por LevelConnections. Sus estados locales son:
 
 ```text
 LATCHED --click/tween corto--> OPEN --cierre físico lento--> LATCHED
@@ -573,14 +726,14 @@ La hoja bloquea cuerpos, balas y luz según su transform real. Su VisionBlocker 
 usa el tamaño completo de la hoja y acompaña toda apertura, sin estados de visibilidad.
 Inspector expone interaction_distance, unlatched/max angle, opening_time, umbrales
 de relatch, key_id, consume_key_on_unlock, rattle y leaf_size; masa y angular_damp
-son propiedades nativas de DoorBody, y la textura es la propiedad nativa de Visual.
+se configuran en raíz con leaf_mass/leaf_angular_damping; leaf_texture controla Visual.
 
 `Door2D.key_id == ItemDefinition.key_id` autoriza el desbloqueo; vacío representa
-una puerta o item sin llave. Main conserva una referencia débil únicamente durante
+una puerta o item sin llave. LevelSession conserva una referencia débil únicamente durante
 la selección y solicita a Inventory quitar una unidad solo cuando la puerta configura
 consume_key_on_unlock, activado por defecto. La puerta no inspecciona slots y la UI
 no modifica su estado.
-El prefab configurado de llave está en scenes/prefabs/items/key_world_item.tscn y
+El prefab configurado de llave está en scenes/prefabs/items/key_item.tscn y
 su definición de ejemplo en resources/items/test_room_key.tres.
 
 Window2D reutiliza HealthComponent con max_durability en su raíz y tres bases 9-slice:
@@ -598,14 +751,14 @@ NinePatchRect; Window2D usa un NinePatchRect con una textura completa por estado
 Width, leaf_size y pane_size redimensionan sin montaje manual de piezas.
 
 scenes/world/movement_test.tscn es el único level playground y la escena que Main
-instancia. Muros, puerta normal, puerta con llave, llaves de prueba, ventana,
+instancia. Player incorpora LevelSession; ejecutar el playground directamente también funciona. Muros, puerta normal, puerta con llave, llaves de prueba, ventana,
 tres luces configuradas por instancia, Player,
 enemigos e items están guardados como nodos/instancias en ese `.tscn`; ningún script
 crea contenido permanente de la demo.
 
 Environment agrupa Walls, Doors, Windows y TestLabels. Sus transforms son identidad;
 la organización no cambia ubicaciones ni geometría. Player, items, enemigos y luces
-conservan sus rutas raíz para no alterar la composición ni la búsqueda de drops.
+conservan sus posiciones. La composición y búsqueda de drops admiten jerarquías anidadas.
 Las zonas físicas existentes se mantienen: objetos/combate abajo, puerta y vidrio en
 la división central, muros/esquinas/diagonales arriba y a la derecha.
 

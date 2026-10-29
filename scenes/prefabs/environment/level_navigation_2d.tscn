@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/level_navigation_2d.gd" id="1"]
+
+[sub_resource type="NavigationPolygon" id="Navigation"]
+resource_local_to_scene = true
+agent_radius = 22.0
+outlines = Array[PackedVector2Array]([PackedVector2Array(24, 24, 1128, 24, 1128, 696, 24, 696)])
+
+[node name="LevelNavigation2D" type="NavigationRegion2D"]
+editor_description = "Draw ONE walkable envelope with native NavigationPolygon handles. Walls and windows inside the level are subtracted at load; do not draw their outlines manually. Clearance must cover the largest enemy radius. Doors retain physical collision, not automatic door AI. Call rebuild explicitly after changing static geometry at runtime."
+script = ExtResource("1")
+navigation_polygon = SubResource("Navigation")

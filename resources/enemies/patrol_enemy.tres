@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="EnemyDefinition" format=3 uid="uid://cuwxoxu2yyvp"]
+
+[ext_resource type="Script" uid="uid://surq1c2l3rqb" path="res://scripts/enemies/enemy_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+chase_speed = 48.0

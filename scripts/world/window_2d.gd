@@ -16,6 +16,12 @@ enum GlassState { INTACT, CRACKED, BROKEN }
 @export_group("Durability")
 @export_range(1.0, 1000.0, 1.0) var max_durability: float = 75.0
 @export_group("Broken glass")
+@export var shard_texture: Texture2D = preload("res://assets/sprites/environment/generated_ai/windows/window_shards.svg"):
+	set(value):
+		shard_texture = value
+		if is_node_ready():
+			_shards.texture = value
+			_sync_size()
 @export_range(0.0, 64.0, 1.0) var shard_scatter_distance: float = 20.0
 @export_range(0.0, 0.5, 0.01) var shard_scatter_time: float = 0.12
 @export_group("Visual States")
@@ -25,6 +31,12 @@ enum GlassState { INTACT, CRACKED, BROKEN }
 		_refresh_visual()
 @export var cracked_texture: Texture2D
 @export var broken_texture: Texture2D
+## Grey outside LOS only; glass remains transparent to vision and light.
+@export var affected_by_fog: bool = true:
+	set(value):
+		affected_by_fog = value
+		if is_node_ready():
+			$FogAppearance.affected_by_fog = value
 
 @onready var health: HealthComponent = $HealthComponent
 @onready var _visual: NinePatchRect = $Visual
@@ -37,6 +49,8 @@ var _last_impact_direction := Vector2.ZERO
 
 func _ready() -> void:
 	_collision.shape = RectangleShape2D.new()
+	_shards.texture = shard_texture
+	$FogAppearance.affected_by_fog = affected_by_fog
 	_sync_size()
 	_refresh_visual()
 	if not Engine.is_editor_hint():

@@ -1,28 +1,23 @@
 [gd_scene format=3 uid="uid://dtve6cf170m55"]
 
-[ext_resource type="PackedScene" uid="uid://c8c2xgd86ml4e" path="res://scenes/prefabs/player/player.tscn" id="1"]
-[ext_resource type="Script" uid="uid://ru18mny0khuc" path="res://scripts/world/movement_test.gd" id="2"]
-[ext_resource type="PackedScene" uid="uid://6wmxmowbqwle" path="res://scenes/prefabs/items/world_item.tscn" id="3"]
-[ext_resource type="Resource" path="res://resources/items/test_item.tres" id="4"]
-[ext_resource type="Resource" path="res://resources/items/revolver_ammo.tres" id="5"]
+[ext_resource type="PackedScene" uid="uid://c8c2xgd86ml4e" path="res://scenes/prefabs/actors/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/items/generic_item.tscn" id="3"]
 [ext_resource type="Shader" uid="uid://cyra0f3jjh75j" path="res://shaders/world/wall_slice.gdshader" id="5_ndavc"]
-[ext_resource type="Resource" path="res://resources/items/revolver_item.tres" id="6"]
 [ext_resource type="Resource" path="res://resources/items/shotgun_shell.tres" id="7"]
 [ext_resource type="Resource" path="res://resources/items/double_barrel_shotgun_item.tres" id="8"]
-[ext_resource type="PackedScene" uid="uid://bxhrfdpe6ethy" path="res://scenes/prefabs/lighting/decorative_light_2d.tscn" id="9"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/enemies/enemy_base.tscn" id="10"]
-[ext_resource type="PackedScene" uid="uid://mkbmqh0wu8yu" path="res://scenes/prefabs/world/level_boundary_2d.tscn" id="11"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/world/door_2d.tscn" id="12"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/world/window_2d.tscn" id="13"]
-[ext_resource type="PackedScene" path="res://scenes/prefabs/items/key_world_item.tscn" id="14"]
+[ext_resource type="PackedScene" uid="uid://bxhrfdpe6ethy" path="res://scenes/prefabs/effects/decorative_light_2d.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/actors/enemies/enemy_base.tscn" id="10"]
+[ext_resource type="PackedScene" uid="uid://mkbmqh0wu8yu" path="res://scenes/prefabs/environment/level_boundary_2d.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/environment/door_2d.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/environment/window_2d.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/items/key_item.tscn" id="14"]
 [ext_resource type="Resource" path="res://resources/items/wrong_test_key.tres" id="15"]
-[ext_resource type="Texture2D" uid="uid://ch7ho8plj86pm" path="res://sprites_codex/environment/floors/floor_clinic_tile.svg" id="16"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_1o6y8"]
-resource_local_to_scene = true
-shader = ExtResource("5_ndavc")
-shader_parameter/wall_width = 16.0
-shader_parameter/border_width = 2.0
+[ext_resource type="Texture2D" uid="uid://ch7ho8plj86pm" path="res://assets/sprites/environment/generated_ai/floors/floor_clinic_tile.svg" id="16"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/items/ammo_item.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/items/weapon_item.tscn" id="18"]
+[ext_resource type="Resource" uid="uid://cuwxoxu2yyvp" path="res://resources/enemies/patrol_enemy.tres" id="18_1o6y8"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/environment/level_navigation_2d.tscn" id="19"]
+[ext_resource type="PackedScene" path="res://scenes/prefabs/actors/enemies/patrol_enemy.tscn" id="20"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_uqnya"]
 resource_local_to_scene = true
@@ -78,10 +73,31 @@ shader = ExtResource("5_ndavc")
 shader_parameter/wall_width = 16.0
 shader_parameter/border_width = 2.0
 
-[node name="MovementTest" type="Node2D" unique_id=1179780724 node_paths=PackedStringArray("doors")]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mwko3"]
+resource_local_to_scene = true
+shader = ExtResource("5_ndavc")
+shader_parameter/wall_width = 16.0
+shader_parameter/border_width = 2.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_15iyo"]
+radius = 20.0
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_udcto"]
+resource_local_to_scene = true
+vertices = PackedVector2Array(1106, 674, 46, 674, 46, 46, 1106, 46)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(24, 24, 1128, 24, 1128, 696, 24, 696)])
+agent_radius = 22.0
+
+[sub_resource type="Curve2D" id="EnemyRoute"]
+resource_local_to_scene = true
+_data = {
+"points": PackedVector2Array(0, 0, 0, 0, 180, 275, 0, 0, 0, 0, 360, 175, 0, 0, 0, 0, 355, 300)
+}
+point_count = 3
+
+[node name="MovementTest" type="Node2D" unique_id=1179780724]
 light_mask = 2
-script = ExtResource("2")
-doors = [NodePath("Environment/Doors/Door"), NodePath("Environment/Doors/LockedDoor")]
 
 [node name="Floor" type="Polygon2D" parent="." unique_id=14675727]
 light_mask = 2
@@ -101,51 +117,51 @@ position = Vector2(260, 540)
 [node name="Walls" type="Node2D" parent="Environment" unique_id=760452602]
 
 [node name="Boundary" parent="Environment/Walls" unique_id=925241306 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_1o6y8")
+material = SubResource("ShaderMaterial_uqnya")
 points = PackedVector2Array(24, 24, 1128, 24, 1128, 696, 24, 696)
 
 [node name="DoorWallLeft" parent="Environment/Walls" unique_id=1778867708 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_uqnya")
+material = SubResource("ShaderMaterial_u4mhy")
 points = PackedVector2Array(24, 380, 260, 380)
 closed = false
 
 [node name="DoorWallRight" parent="Environment/Walls" unique_id=1370360734 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_u4mhy")
+material = SubResource("ShaderMaterial_ipyep")
 points = PackedVector2Array(356, 380, 456, 380)
 closed = false
 
 [node name="WindowWallRight" parent="Environment/Walls" unique_id=2080995158 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_ipyep")
+material = SubResource("ShaderMaterial_ltl3u")
 points = PackedVector2Array(552, 380, 1128, 380)
 closed = false
 
 [node name="IrregularWall" parent="Environment/Walls" unique_id=613014248 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_ltl3u")
+material = SubResource("ShaderMaterial_i1gpj")
 points = PackedVector2Array(1128, 327, 703, 357, 717, 214, 726, 97, 671, 24)
 closed = false
 
 [node name="Corner" parent="Environment/Walls" unique_id=2076688202 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_i1gpj")
+material = SubResource("ShaderMaterial_cisgs")
 points = PackedVector2Array(800, 540, 800, 640, 1020, 640)
 closed = false
 
 [node name="ThickHorizontalWall" parent="Environment/Walls" unique_id=1871750561 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_cisgs")
+material = SubResource("ShaderMaterial_khirq")
 points = PackedVector2Array(100, 220, 340, 220)
 closed = false
 
 [node name="HiddenParallelWall" parent="Environment/Walls" unique_id=1678339545 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_khirq")
+material = SubResource("ShaderMaterial_kkkc4")
 points = PackedVector2Array(100, 140, 340, 140)
 closed = false
 
 [node name="ThickVerticalWall" parent="Environment/Walls" unique_id=1810680098 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_kkkc4")
+material = SubResource("ShaderMaterial_5g4i2")
 points = PackedVector2Array(400, 80, 400, 260)
 closed = false
 
 [node name="ThickDiagonalWall" parent="Environment/Walls" unique_id=853875355 instance=ExtResource("11")]
-material = SubResource("ShaderMaterial_5g4i2")
+material = SubResource("ShaderMaterial_mwko3")
 points = PackedVector2Array(470, 250, 590, 130)
 closed = false
 
@@ -197,33 +213,36 @@ offset_top = 402.0
 theme_override_font_sizes/font_size = 10
 text = "VIDRIO: 75 HP / VER, NO PASAR"
 
+[node name="EnemyTestLabel" type="Label" parent="Environment/TestLabels" unique_id=840057952]
+offset_left = 100.0
+offset_top = 308.0
+offset_right = 390.0
+offset_bottom = 325.0
+theme_override_font_sizes/font_size = 10
+text = "IA: PATRULLA / VISION / RUIDO DE RUEDAS"
+
 [node name="NearItem" parent="." unique_id=866608588 instance=ExtResource("3")]
 position = Vector2(320, 540)
-definition = ExtResource("4")
 
 [node name="SecondItem" parent="." unique_id=1755277197 instance=ExtResource("3")]
 position = Vector2(215, 485)
-definition = ExtResource("4")
 
 [node name="FarItem" parent="." unique_id=1715785920 instance=ExtResource("3")]
 position = Vector2(450, 590)
-definition = ExtResource("4")
 
-[node name="AmmoFirst" parent="." unique_id=1942961071 instance=ExtResource("3")]
+[node name="AmmoFirst" parent="." unique_id=1942961071 instance=ExtResource("17")]
 position = Vector2(335, 485)
-definition = ExtResource("5")
 quantity = 20
 
-[node name="AmmoSecond" parent="." unique_id=1273077067 instance=ExtResource("3")]
+[node name="AmmoSecond" parent="." unique_id=1273077067 instance=ExtResource("17")]
 position = Vector2(180, 550)
 definition = ExtResource("7")
 quantity = 10
 
-[node name="TestWeapon" parent="." unique_id=88751628 instance=ExtResource("3")]
+[node name="TestWeapon" parent="." unique_id=88751628 instance=ExtResource("18")]
 position = Vector2(290, 450)
-definition = ExtResource("6")
 
-[node name="Shotgun" parent="." unique_id=2099804076 instance=ExtResource("3")]
+[node name="Shotgun" parent="." unique_id=2099804076 instance=ExtResource("18")]
 position = Vector2(235, 620)
 definition = ExtResource("8")
 
@@ -236,78 +255,68 @@ definition = ExtResource("15")
 
 [node name="VisionBehindWall" parent="." unique_id=469014277 instance=ExtResource("3")]
 position = Vector2(260, 175)
-definition = ExtResource("4")
 
 [node name="VisionPartialWall" parent="." unique_id=471642582 instance=ExtResource("3")]
 position = Vector2(504, 335)
-definition = ExtResource("4")
 
 [node name="VisionRoundEdge" parent="." unique_id=1771990727 instance=ExtResource("3")]
 position = Vector2(1005, 190)
-definition = ExtResource("4")
 
 [node name="VisionBoundary" parent="." unique_id=1325300964 instance=ExtResource("3")]
 position = Vector2(405, 470)
-definition = ExtResource("4")
 
 [node name="WarmLamp" parent="." unique_id=805576506 instance=ExtResource("9")]
 position = Vector2(320, 565)
-
-[node name="PointLight2D" parent="WarmLamp" index="0" unique_id=809296133]
-color = Color(1, 0.8, 0.5, 1)
-energy = 1.2
-texture_scale = 1.5
+light_color = Color(1, 0.8, 0.5, 1)
+light_energy = 1.2
+light_radius = 96.0
 
 [node name="HiddenLamp" parent="." unique_id=261051534 instance=ExtResource("9")]
 position = Vector2(260, 175)
-
-[node name="PointLight2D" parent="HiddenLamp" index="0" unique_id=809296133]
-color = Color(1, 0.35, 0.25, 1)
-energy = 0.5
+light_color = Color(1, 0.35, 0.25, 1)
+light_energy = 0.5
 
 [node name="CoolLamp" parent="." unique_id=1978840213 instance=ExtResource("9")]
 position = Vector2(504, 330)
-
-[node name="PointLight2D" parent="CoolLamp" index="0" unique_id=809296133]
-color = Color(0.4, 0.65, 1, 1)
-energy = 1.8
-texture_scale = 1.5
+light_color = Color(0.4, 0.65, 1, 1)
+light_energy = 1.8
+light_radius = 96.0
 
 [node name="EnemyLowHealth" parent="." unique_id=1955355927 instance=ExtResource("10")]
 position = Vector2(335, 645)
-
-[node name="HealthComponent" parent="EnemyLowHealth" index="2"]
 max_health = 50.0
 
 [node name="EnemyHighHealth" parent="." unique_id=58400572 instance=ExtResource("10")]
 position = Vector2(445, 350)
-
-[node name="HealthComponent" parent="EnemyHighHealth" index="2"]
 max_health = 200.0
 
 [node name="EnemyBase" parent="." unique_id=298714688 instance=ExtResource("10")]
 position = Vector2(149, 451)
 
+[node name="CollisionShape2D" parent="EnemyBase" index="1"]
+shape = SubResource("CircleShape2D_15iyo")
+
+[node name="HealthLabel" parent="EnemyBase" index="3"]
+visible = false
+
 [node name="EnemyBehindThickWall" parent="." unique_id=520648572 instance=ExtResource("10")]
 position = Vector2(240, 180)
 
-[connection signal="pickup_requested" from="NearItem" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="SecondItem" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="FarItem" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="AmmoFirst" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="AmmoSecond" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="TestWeapon" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="Shotgun" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="TestRoomKey" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="WrongKey" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="VisionBehindWall" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="VisionPartialWall" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="VisionRoundEdge" to="Player/PickupInteractor" method="request_pickup"]
-[connection signal="pickup_requested" from="VisionBoundary" to="Player/PickupInteractor" method="request_pickup"]
+[node name="LevelNavigation2D" parent="." unique_id=1611285294 instance=ExtResource("19")]
+navigation_polygon = SubResource("NavigationPolygon_udcto")
 
-[editable path="WarmLamp"]
-[editable path="HiddenLamp"]
-[editable path="CoolLamp"]
-[editable path="EnemyLowHealth"]
-[editable path="EnemyHighHealth"]
+[node name="EnemyPatrolRoute" type="Path2D" parent="." unique_id=923574725]
+curve = SubResource("EnemyRoute")
+
+[node name="PatrolEnemy" parent="." unique_id=1312861411 node_paths=PackedStringArray("patrol_route") instance=ExtResource("20")]
+position = Vector2(180, 275)
+definition = ExtResource("18_1o6y8")
+patrol_mode = 0
+patrol_route = NodePath("../EnemyPatrolRoute")
+wait_time_at_point = 0.5
+show_navigation_debug = true
+show_patrol_debug = true
+show_vision_debug = true
+show_hearing_debug = true
+
 [editable path="EnemyBase"]

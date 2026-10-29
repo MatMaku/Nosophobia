@@ -9,6 +9,7 @@ var shots: int = 0
 var dry: int = 0
 var segments: Array[Vector2] = []
 var starts: Array[Vector2] = []
+var fired_direction := Vector2.ZERO
 
 
 func _initialize() -> void:
@@ -89,6 +90,7 @@ func _run() -> void:
 
 	var main = load("res://scenes/app/main.tscn").instantiate()
 	root.add_child(main)
+	current_scene = main
 	await ticks()
 	var player = main.get_node("MovementTest/Player")
 	# This fixture checks the upper obstacle; production now starts facing down.
@@ -97,10 +99,12 @@ func _run() -> void:
 	var aim = player.get_node("WeaponAim")
 	var firearm = player.get_node("FirearmController")
 	var movement = player.get_node("WheelchairInput")
-	var ui = main.get_node("HUD/InventoryUI")
-	var reload_ui = main.get_node("HUD/WeaponReloadUI")
-	var cursor = main.get_node("CursorController")
-	firearm.shot_fired.connect(func(_origin: Vector2, _direction: Vector2): shots += 1)
+	var ui = player.get_node("LevelSession/HUD/InventoryUI")
+	var reload_ui = player.get_node("LevelSession/HUD/WeaponReloadUI")
+	var cursor = player.get_node("LevelSession/CursorController")
+	firearm.shot_fired.connect(func(_origin: Vector2, direction: Vector2):
+		shots += 1
+		fired_direction = direction)
 	firearm.dry_fired.connect(func(): dry += 1)
 	firearm.shot_resolved.connect(func(result):
 		starts.append(result.start)
@@ -173,6 +177,10 @@ func _run() -> void:
 	await drag_to(loose.get_child(0), sockets.get_child(4).get_global_rect().get_center())
 	check(state.get_loaded_count() == 3, "non-consecutive chambers loaded")
 	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
+	# Aim at the middle of the leaf, not its intentional hinge collision clearance.
+	player.global_position = Vector2(310, 540)
+	player.linear_velocity = Vector2.ZERO
+	await ticks()
 	await button(center + Vector2(0, -120), MOUSE_BUTTON_RIGHT, true)
 	await button(center + Vector2(0, -120), MOUSE_BUTTON_LEFT, true)
 	check(shots == 1 and segments.size() == 1 and state.get_loaded_count() == 2,
@@ -189,7 +197,7 @@ func _run() -> void:
 	check(shots == 2, "cooldown rejects rapid repeated trigger")
 	await button(center, MOUSE_BUTTON_RIGHT, false)
 	await ticks(40)
-	check(main.get_node("Tracers").get_child_count() == 0, "tracers fade and free themselves")
+	check(player.get_node("LevelSession/Tracers").get_child_count() == 0, "tracers fade and free themselves")
 	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
 	check(state.get_loaded_count() == 1 and state.is_loaded(4), "reopen reflects remaining chamber")
 	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
@@ -235,10 +243,12 @@ func _run() -> void:
 		"shotgun consumes one shell per trigger")
 	check(segments.size() == prior_segments + shotgun.firearm.pellet_count,
 		"shotgun creates one ray and tracer per configured pellet")
-	var base := Vector2.UP.rotated(player.global_rotation)
+	# Spread is centered on final aim at the shot, not chair forward after recoil.
+	var base := fired_direction
 	for index in range(prior_segments, segments.size()):
 		var ray := segments[index] - starts[index]
-		check(absf(rad_to_deg(base.angle_to(ray))) <= 9.1, "pellet inside spread cone")
+		check(absf(rad_to_deg(base.angle_to(ray))) <= shotgun.firearm.spread_degrees * 0.5 + 0.1,
+			"pellet inside spread cone")
 	await button(center, MOUSE_BUTTON_RIGHT, false)
 	await click(reload_ui.get_node("WeaponButton").get_global_rect().get_center())
 	check(reload_ui.get_loose_count() == 1, "1/2 shotgun shows one loose shell")

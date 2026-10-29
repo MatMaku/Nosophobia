@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/internal/items/world_item.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/items/editable_item.gd" id="2"]
+[ext_resource type="Resource" path="res://resources/items/test_item.tres" id="3"]
+
+[node name="GenericItem" instance=ExtResource("1")]
+script = ExtResource("2")
+definition = ExtResource("3")

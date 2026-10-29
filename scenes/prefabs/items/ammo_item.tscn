@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/internal/items/world_item.tscn" id="1"]
+[ext_resource type="Resource" path="res://resources/items/revolver_ammo.tres" id="2"]
+
+[node name="AmmoItem" instance=ExtResource("1")]
+editor_description = "Select the shared ammo Definition and Quantity. Inventory Icon is Definition > Icon and affects this ammo type everywhere. World Sprite/Scale are placement-only. Do not Make Unique: reload and stacking use definition identity."
+definition = ExtResource("2")

@@ -8,15 +8,20 @@ const SUBJECT_SHADER = preload("res://shaders/world/vision_subject.gdshader")
 @onready var _copy: MeshInstance2D = $Mask/ShadowCopy
 var _material := ShaderMaterial.new()
 var _mask_ready: bool = false
+var _level: Node
 
 
 func _ready() -> void:
 	_material.shader = SUBJECT_SHADER
 	_material.set_shader_parameter("hidden_mask", _mask.get_texture())
-	for subject in get_tree().get_nodes_in_group("vision_subject"):
-		_register_subject(subject)
 	get_tree().node_added.connect(_on_node_added)
 	RenderingServer.frame_pre_draw.connect(_sync_canvas)
+
+
+func bind_level(level: Node) -> void:
+	_level = level
+	for subject in get_tree().get_nodes_in_group("vision_subject"):
+		_register_subject(subject)
 
 
 func _on_node_added(node: Node) -> void:
@@ -25,7 +30,7 @@ func _on_node_added(node: Node) -> void:
 
 
 func _register_subject(node: Node) -> void:
-	if not is_instance_valid(node):
+	if not is_instance_valid(node) or _level == null or not _level.is_ancestor_of(node):
 		return
 	_apply_material(node)
 
@@ -43,6 +48,10 @@ func update_mesh() -> void:
 	if not _mask_ready:
 		_mask_ready = true
 		_material.set_shader_parameter("mask_ready", true)
+
+
+func set_presentation_enabled(enabled: bool) -> void:
+	_material.set_shader_parameter("mask_enabled", enabled)
 
 
 func _sync_canvas() -> void:

@@ -107,3 +107,9 @@ func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
 	if not enabled:
 		_end_drag()
+
+
+func get_noclip_direction() -> Vector2:
+	if not input_enabled or not get_window().has_focus():
+		return Vector2.ZERO
+	return Input.get_vector("noclip_left", "noclip_right", "noclip_up", "noclip_down")

@@ -254,6 +254,13 @@ Crear un InputComponent separado solamente cuando la complejidad lo justifique.
 
 Organización del proyecto
 
+Catálogo canónico para construir niveles: scenes/prefabs/actors, environment,
+items y effects. Solo piezas colocables; componentes internos fuera del catálogo.
+Sprites bajo assets/sprites/<función>/authored o generated_ai; referencias de terceros
+identificadas como reference. No volver a crear raíces Sprites/ o sprites_codex/.
+Player incluye la composición interna LevelSession: un Player por nivel, sin rutas
+fijas en la escena del nivel ni conexiones manuales de pickups/puertas/luces.
+
 Organizar primero por tipo de recurso y después por feature o dominio.
 
 Las carpetas raíz deben usar nombres descriptivos en snake_case.
@@ -278,10 +285,9 @@ scenes/
     world/
     ui/
 
-sprites/
-    player/
-    enemies/
-    world/
+assets/sprites/
+    characters/authored/
+    environment/generated_ai/
 
 resources/
     player/
@@ -310,8 +316,8 @@ scenes/
     player/
         player.tscn
 
-sprites/
-    player/
+assets/sprites/
+    characters/authored/
         player_sprite.png
 
 No colocar todos los archivos directamente en scripts/, scenes/, sprites/ o

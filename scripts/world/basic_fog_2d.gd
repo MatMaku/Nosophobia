@@ -20,6 +20,7 @@ var _segments := PackedVector2Array()
 var _corners := PackedVector2Array()
 var _hits := PackedVector2Array()
 var last_update_usec: int = 0
+var _debug_enabled: bool = false
 
 
 func _ready() -> void:
@@ -38,6 +39,17 @@ func bind_viewer(viewer: Node2D, blockers: Array[VisionBlocker2D]) -> void:
 
 func is_position_visible(point: Vector2) -> bool:
 	return _hits.size() >= 3 and Geometry2D.is_point_in_polygon(point, _hits)
+
+
+func set_presentation_enabled(enabled: bool) -> void:
+	# LOS continues updating: no stale masks on re-enable, no gameplay changes.
+	_shadow.visible = enabled
+	_visibility_mask.set_presentation_enabled(enabled)
+
+
+func set_debug_visuals_enabled(enabled: bool) -> void:
+	_debug_enabled = enabled
+	queue_redraw()
 
 
 func _physics_process(_delta: float) -> void:
@@ -94,7 +106,7 @@ func _physics_process(_delta: float) -> void:
 	_build_shadow(ends)
 	_shadow.material.set_shader_parameter("unseen_brightness", unseen_brightness)
 	_visibility_mask.update_mesh()
-	if show_rays:
+	if show_rays and _debug_enabled:
 		queue_redraw()
 	last_update_usec = Time.get_ticks_usec() - started
 
@@ -145,6 +157,6 @@ func _build_shadow(ends: PackedVector2Array) -> void:
 
 
 func _draw() -> void:
-	if show_rays and is_instance_valid(_viewer):
+	if show_rays and _debug_enabled and is_instance_valid(_viewer):
 		for hit in _hits:
 			draw_line(to_local(_viewer.global_position), to_local(hit), Color.CYAN)

@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/internal/items/world_item.tscn" id="1"]
+[ext_resource type="Resource" path="res://resources/items/revolver_item.tres" id="2"]
+
+[node name="WeaponItem" instance=ExtResource("1")]
+editor_description = "Select the shared weapon Definition (inventory icon, firearm and presentation). Quantity must be 1. Loaded ammunition lives only in the runtime ItemStack."
+definition = ExtResource("2")

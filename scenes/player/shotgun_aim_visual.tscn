@@ -1,8 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/player/weapon_aim_visual.gd" id="1"]
-[ext_resource type="Texture2D" path="res://Sprites/Personaje/Piernas escopeta.png" id="2"]
-[ext_resource type="Texture2D" path="res://Sprites/Personaje/Pose escopeta.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/authored/Piernas escopeta.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/authored/Pose escopeta.png" id="3"]
 
 [node name="WeaponAimVisual" type="Node2D"]
 script = ExtResource("1")

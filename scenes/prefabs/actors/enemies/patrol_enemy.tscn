@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/prefabs/actors/enemies/enemy_base.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/enemies/patrol_enemy.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_movement.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_perception.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/enemies/enemy_behavior.gd" id="5"]
+
+[node name="PatrolEnemy" instance=ExtResource("1")]
+editor_description = "EnemyDefinition: shared type data. Assign a level Path2D to Patrol Route, or choose STATIONARY. UP is forward. Requires a LevelNavigation2D covering this level. No attacks."
+script = ExtResource("2")
+collision_mask = 5
+
+[node name="NavigationObstacle2D" parent="." index="4"]
+avoidance_enabled = false
+
+[node name="NavigationAgent2D" type="NavigationAgent2D" parent="."]
+path_desired_distance = 4.0
+target_desired_distance = 5.0
+radius = 20.0
+path_max_distance = 32.0
+avoidance_enabled = true
+neighbor_distance = 100.0
+time_horizon_agents = 0.5
+time_horizon_obstacles = 0.5
+
+[node name="Movement" type="Node" parent="."]
+script = ExtResource("3")
+
+[node name="Perception" type="Node2D" parent="."]
+script = ExtResource("4")
+
+[node name="Behavior" type="Node2D" parent="."]
+script = ExtResource("5")

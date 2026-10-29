@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/ui/reload_ammo_control.tscn" id="1"]
-[ext_resource type="Texture2D" path="res://sprites_codex/weapons/reload_view/revolver_reload_view.svg" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/weapons/generated_ai/reload_view/revolver_reload_view.svg" id="2"]
 
 [node name="ReloadLayout" type="Control"]
 custom_minimum_size = Vector2(300, 220)

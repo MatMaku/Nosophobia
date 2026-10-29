@@ -7,29 +7,56 @@ signal key_requested(door: Node2D)
 
 enum DoorState { LATCHED, OPEN, KEY_LOCKED }
 
-@export_group("Interaction")
-@export_range(1.0, 200.0, 1.0) var interaction_distance: float = 80.0
-@export_group("Opening")
-@export_range(1.0, 90.0, 1.0) var unlatched_angle_degrees: float = 20.0
-@export_range(1.0, 170.0, 1.0) var max_open_angle_degrees: float = 100.0
-@export_range(0.01, 1.0, 0.01) var opening_time: float = 0.22
-@export_range(0.1, 15.0, 0.1) var closing_latch_angle_degrees: float = 4.0
-@export_range(0.1, 5.0, 0.1) var closing_angular_velocity: float = 0.5
-@export_group("Key Lock")
-@export var key_id: StringName = &""
-@export var consume_key_on_unlock: bool = true
-@export_range(0.5, 10.0, 0.5) var rattle_angle_degrees: float = 3.0
-@export_range(0.03, 0.5, 0.01) var rattle_time: float = 0.15
-@export_group("Leaf")
-## Physical clearance only: x is the hinge end, y is the free end.
-@export var collision_end_insets: Vector2 = Vector2(10, 1):
-	set(value):
-		collision_end_insets = value.max(Vector2.ZERO)
-		_sync_leaf()
+@export_group("Visual")
+## Length and thickness in world units. The root remains the hinge; do not scale children.
 @export var leaf_size: Vector2 = Vector2(96, 12):
 	set(value):
 		leaf_size = value.max(Vector2(32, 8))
 		_sync_leaf()
+@export var leaf_texture: Texture2D = preload("res://assets/sprites/environment/generated_ai/doors/door_leaf.svg"):
+	set(value):
+		leaf_texture = value
+		if is_node_ready():
+			_visual.texture = value
+## Grey outside LOS; disabling this never disables vision blocking.
+@export var affected_by_fog: bool = false:
+	set(value):
+		affected_by_fog = value
+		if is_node_ready():
+			$FogAppearance.affected_by_fog = value
+@export_group("Physics Advanced")
+## Physical clearance only: X hinge end, Y free end. Also affects bullet collision.
+@export var collision_end_insets: Vector2 = Vector2(10, 1):
+	set(value):
+		collision_end_insets = value.max(Vector2.ZERO)
+		_sync_leaf()
+@export_range(0.01, 100.0, 0.01) var leaf_mass: float = 0.8:
+	set(value):
+		leaf_mass = value
+		if is_node_ready():
+			body.mass = value
+@export_range(0.0, 30.0, 0.1) var leaf_angular_damping: float = 3.0:
+	set(value):
+		leaf_angular_damping = value
+		if is_node_ready():
+			body.angular_damp = value
+@export_group("Interaction")
+## Maximum interaction distance in world units, independent of leaf size.
+@export_range(1.0, 200.0, 1.0) var interaction_distance: float = 80.0
+@export_group("Opening")
+@export_range(1.0, 90.0, 1.0) var unlatched_angle_degrees: float = 20.0
+@export_range(1.0, 170.0, 1.0) var max_open_angle_degrees: float = 100.0
+@export_subgroup("Relatch Advanced")
+@export_range(0.01, 1.0, 0.01) var opening_time: float = 0.22
+@export_range(0.1, 15.0, 0.1) var closing_latch_angle_degrees: float = 4.0
+@export_range(0.1, 5.0, 0.1) var closing_angular_velocity: float = 0.5
+@export_group("Key Lock")
+## Empty means an ordinary latched door. Otherwise match KeyItem.key_id exactly.
+@export var key_id: StringName = &""
+@export var consume_key_on_unlock: bool = true
+@export_subgroup("Feedback Advanced")
+@export_range(0.5, 10.0, 0.5) var rattle_angle_degrees: float = 3.0
+@export_range(0.03, 0.5, 0.01) var rattle_time: float = 0.15
 
 @onready var body: RigidBody2D = $DoorBody
 @onready var interaction_area: Area2D = $DoorBody/InteractionArea
@@ -52,7 +79,12 @@ var _last_opening_sign: float = -1.0
 
 func _ready() -> void:
 	set_physics_process(false)
+	_visual.texture = leaf_texture
+	body.mass = leaf_mass
+	body.angular_damp = leaf_angular_damping
+	$FogAppearance.affected_by_fog = affected_by_fog
 	_collision.shape = RectangleShape2D.new()
+	$DoorBody/AISightBlocker/Shape.shape = RectangleShape2D.new()
 	_click_shape.shape = RectangleShape2D.new()
 	_occluder.occluder = OccluderPolygon2D.new()
 	_visual.texture_changed.connect(_sync_leaf)
@@ -94,6 +126,7 @@ func _sync_leaf() -> void:
 		insets *= (leaf_size.x - 1.0) / total
 	_collision.position = Vector2((insets.x - insets.y) * 0.5, 0)
 	_collision.shape.size = Vector2(leaf_size.x - insets.x - insets.y, leaf_size.y)
+	$DoorBody/AISightBlocker/Shape.shape.size = leaf_size
 	_click_shape.position = Vector2.ZERO
 	_click_shape.shape.size = leaf_size + Vector2(0, 12)
 	_visual.position = -leaf_size * 0.5

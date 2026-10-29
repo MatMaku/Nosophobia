@@ -1,6 +1,8 @@
 @tool
 extends Line2D
 ## Native Line2D points are the only authored geometry. Children are derived outputs.
+## Points is the wall axis; Width extends equally to both sides. Closed joins last to first.
+## For a doorway use two open paths separated by the opening. Keep Scale at (1, 1).
 
 @export_group("Collision")
 @export var collision_enabled: bool = true:
@@ -8,10 +10,22 @@ extends Line2D
 		collision_enabled = value
 		_sync_enabled()
 @export_group("Occlusion")
+## Only decorative-light shadows; independent of body collision and player LOS.
 @export var occlusion_enabled: bool = true:
 	set(value):
 		occlusion_enabled = value
 		_sync_enabled()
+## Player LOS only; does not change collision or decorative-light shadows.
+@export var blocks_vision: bool = true:
+	set(value):
+		blocks_vision = value
+		_sync_enabled()
+## Whether unseen wall pixels receive the grey environment filter.
+@export var affected_by_fog: bool = true:
+	set(value):
+		affected_by_fog = value
+		if is_node_ready():
+			$FogAppearance.affected_by_fog = value
 
 @onready var _collision: CollisionShape2D = $Collision/Polygon
 @onready var _occluder: LightOccluder2D = $LightOccluder
@@ -26,6 +40,7 @@ func _ready() -> void:
 	# Never modify another instance's shared resource (including editor duplicates).
 	_occluder.occluder = OccluderPolygon2D.new()
 	_collision.shape = ConcavePolygonShape2D.new()
+	$FogAppearance.affected_by_fog = affected_by_fog
 	_sync_geometry(true)
 
 
@@ -54,6 +69,7 @@ func _sync_geometry(force: bool = false) -> void:
 				segments.append(contour[index])
 				segments.append(contour[(index + 1) % contour.size()])
 		_collision.shape.segments = segments
+		$AISightBlocker/Shape.shape = _collision.shape
 		_vision_blocker.set_contours(contours)
 		_occluder.occluder.polygon = points
 		_occluder.occluder.closed = closed
@@ -67,7 +83,9 @@ func _sync_enabled() -> void:
 		return
 	var valid := points.size() >= (3 if closed else 2)
 	_collision.disabled = not collision_enabled or not valid
+	$AISightBlocker/Shape.disabled = not collision_enabled or not valid
 	_occluder.visible = occlusion_enabled and valid
+	_vision_blocker.collision_layer = VisionBlocker2D.LAYER if blocks_vision and valid else 0
 
 
 func _get_configuration_warnings() -> PackedStringArray:

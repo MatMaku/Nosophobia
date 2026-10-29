@@ -1,10 +1,10 @@
 [gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/weapon_fire_vfx.gd" id="1"]
-[ext_resource type="Texture2D" path="res://Sprites/Personaje/Muzzle flash.png" id="2"]
-[ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 1.png" id="3"]
-[ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 2.png" id="4"]
-[ext_resource type="Texture2D" path="res://Sprites/Personaje/Humo 3.png" id="5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/authored/Muzzle flash.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/authored/Humo 1.png" id="3"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/authored/Humo 2.png" id="4"]
+[ext_resource type="Texture2D" path="res://assets/sprites/effects/authored/Humo 3.png" id="5"]
 
 [sub_resource type="Gradient" id="MuzzleLightGradient"]
 offsets = PackedFloat32Array(0, 0.42, 0.72, 1)
